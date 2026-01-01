@@ -1,0 +1,48 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Kelola Data WBP</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Data WBP</li>
+    </ol>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-users me-1"></i> Update Jumlah Warga Binaan
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <form method="POST" action="{{ url_for('admin_wbp') }}">
+                        <div class="mb-3">
+                            <label for="wbp_count" class="form-label fw-bold">Jumlah WBP Saat Ini</label>
+                            <input type="number" class="form-control form-control-lg text-primary fw-bold" 
+                                   id="wbp_count" name="wbp_count" value="{{ current_count }}" required>
+                            <div class="form-text">Masukkan angka jumlah warga binaan terbaru. Angka ini akan tampil di halaman depan website.</div>
+                        </div>
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Simpan Perubahan</button>
+                    </form>
+                </div>
+                <div class="col-md-6 d-flex align-items-center justify-content-center bg-light rounded">
+                    <div class="text-center py-4">
+                        <h1 class="display-1 fw-bold text-secondary">{{ current_count }}</h1>
+                        <p class="text-muted">Data Tampil di Website</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

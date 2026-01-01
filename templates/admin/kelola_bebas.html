@@ -1,0 +1,133 @@
+{% extends 'admin/layout.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-1">Kelola WBP Bebas & Subsider</h4>
+        <p class="text-muted small m-0">Input Data WBP yang akan bebas sesuai daftar Excel.</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="fas fa-plus me-2"></i> Tambah Data
+    </button>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="py-3 ps-4">No</th>
+                        <th class="py-3">Nama WBP</th>
+                        <th class="py-3">Tgl Ekspirasi</th>
+                        <th class="py-3">Keterangan</th>
+                        <th class="py-3 text-end pe-4">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if data %}
+                        {% for row in data %}
+                        <tr>
+                            <td class="ps-4 fw-bold">{{ loop.index }}</td>
+                            <td>{{ row.nama_wbp }}</td>
+                            <td>{{ row.tgl_ekspirasi.strftime('%d-%m-%Y') }}</td>
+                            <td><span class="badge bg-secondary">{{ row.keterangan }}</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-sm btn-warning me-1" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#editModal{{ row.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a href="{{ url_for('admin_bebas_delete', id=row.id) }}" 
+                                   class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Yakin hapus data ini?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="editModal{{ row.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ url_for('admin_bebas_update') }}" method="POST">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Data WBP Bebas</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" value="{{ row.id }}">
+                                            <div class="mb-3">
+                                                <label class="form-label">Nama WBP</label>
+                                                <input type="text" name="nama" class="form-control" value="{{ row.nama_wbp }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Tgl Ekspirasi</label>
+                                                <input type="date" name="tgl" class="form-control" value="{{ row.tgl_ekspirasi }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Keterangan</label>
+                                                <select name="ket" class="form-select" required>
+                                                    <option value="BEBAS BIASA" {% if row.keterangan == 'BEBAS BIASA' %}selected{% endif %}>BEBAS BIASA</option>
+                                                    <option value="TEKEN SUBSIDER" {% if row.keterangan == 'TEKEN SUBSIDER' %}selected{% endif %}>TEKEN SUBSIDER</option>
+                                                    <option value="PEMBEBASAN BERSYARAT" {% if row.keterangan == 'PEMBEBASAN BERSYARAT' %}selected{% endif %}>PEMBEBASAN BERSYARAT</option>
+                                                    <option value="CUTI BERSYARAT" {% if row.keterangan == 'CUTI BERSYARAT' %}selected{% endif %}>CUTI BERSYARAT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">Belum ada data.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('admin_bebas_add') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Data WBP Bebas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama WBP</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Contoh: IBNU TAIMYAH" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tgl Ekspirasi</label>
+                        <input type="date" name="tgl" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Keterangan</label>
+                        <select name="ket" class="form-select" required>
+                            <option value="">-- Pilih Keterangan --</option>
+                            <option value="BEBAS BIASA">BEBAS BIASA</option>
+                            <option value="TEKEN SUBSIDER">TEKEN SUBSIDER</option>
+                            <option value="PEMBEBASAN BERSYARAT">PEMBEBASAN BERSYARAT</option>
+                            <option value="CUTI BERSYARAT">CUTI BERSYARAT</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

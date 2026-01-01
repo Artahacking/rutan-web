@@ -1,0 +1,140 @@
+{% extends "admin/layout.html" %}
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Kelola Data Litmas</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Data Litmas</li>
+    </ol>
+
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addModal">
+        <i class="fas fa-plus me-1"></i> Tambah Data Baru
+    </button>
+
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-dark text-white">
+            <i class="fas fa-table me-1"></i> Daftar WBP Usul Litmas
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>No</th>
+                            <th>Nama WBP</th>
+                            <th>Pidana (Thn)</th>
+                            <th>Pidana (Bln)</th>
+                            <th>Denda</th>
+                            <th>Subs (Bln)</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td class="fw-bold">{{ item.nama_wbp }}</td>
+                            <td>{{ item.pidana_tahun }}</td>
+                            <td>{{ item.pidana_bulan }}</td>
+                            <td>{{ item.besaran_denda }}</td>
+                            <td>{{ item.subs_bulan }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-warning me-1" data-bs-toggle="modal" data-bs-target="#editModal{{ item.id }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <a href="{{ url_for('admin_litmas_delete', id=item.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Yakin hapus data ini?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="editModal{{ item.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Data</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{{ url_for('admin_litmas_update') }}" method="POST">
+                                        <div class="modal-body">
+                                            <input type="hidden" name="id" value="{{ item.id }}">
+                                            <div class="mb-3">
+                                                <label class="form-label">Nama WBP</label>
+                                                <input type="text" name="nama" class="form-control" value="{{ item.nama_wbp }}" required>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-6 mb-3">
+                                                    <label class="form-label">Pidana (Tahun)</label>
+                                                    <input type="number" name="tahun" class="form-control" value="{{ item.pidana_tahun }}">
+                                                </div>
+                                                <div class="col-6 mb-3">
+                                                    <label class="form-label">Pidana (Bulan)</label>
+                                                    <input type="number" name="bulan" class="form-control" value="{{ item.pidana_bulan }}">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Besaran Denda (Teks/Angka)</label>
+                                                <input type="text" name="denda" class="form-control" value="{{ item.besaran_denda }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Subsider (Bulan)</label>
+                                                <input type="number" name="subs" class="form-control" value="{{ item.subs_bulan }}">
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                            <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Data Litmas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_litmas_add') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Nama WBP</label>
+                        <input type="text" name="nama" class="form-control" required placeholder="Contoh: FULAN BIN FULAN">
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Pidana (Tahun)</label>
+                            <input type="number" name="tahun" class="form-control" value="0">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Pidana (Bulan)</label>
+                            <input type="number" name="bulan" class="form-control" value="0">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Besaran Denda</label>
+                        <input type="text" name="denda" class="form-control" placeholder="Contoh: Rp. 1.000.000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subsider (Bulan)</label>
+                        <input type="number" name="subs" class="form-control" value="0">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h3 class="fw-bold text-dark mb-1">Manajemen Administrator</h3>
+        <p class="text-muted small mb-0">Kelola akses, keamanan, dan profil pengguna sistem.</p>
+    </div>
+    <button class="btn btn-primary fw-bold shadow-sm px-4 py-2 rounded-pill" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+        <i class="fas fa-plus me-2"></i>Admin Baru
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for user in data %}
+    <div class="col-md-6 col-lg-4 col-xl-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden card-hover">
+            
+            <div class="card-header border-0 p-0" style="height: 100px; background: linear-gradient(45deg, #3699ff, #6610f2);"></div>
+            
+            <div class="card-body text-center pt-0 position-relative">
+                <div class="position-relative d-inline-block mt-n5 mb-3">
+                    <div class="avatar-wrapper rounded-circle p-1 bg-white shadow-sm">
+                        {% if user.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.image) }}" class="rounded-circle object-fit-cover" style="width: 90px; height: 90px;">
+                        {% else %}
+                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary" style="width: 90px; height: 90px;">
+                                <i class="fas fa-user fa-2x"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if session['user'] == user.username %}
+                        <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-white rounded-circle pulse-animation" title="Sedang Aktif"></span>
+                    {% endif %}
+                </div>
+
+                <h5 class="fw-bold text-dark mb-0">{{ user.username }}</h5>
+                <small class="text-muted d-block mb-3">Administrator</small>
+
+                <div class="d-flex justify-content-center gap-2 mt-4">
+                    <button class="btn btn-light text-primary btn-sm rounded-3 px-3 fw-bold" 
+                            data-bs-toggle="modal" data-bs-target="#editUserModal"
+                            data-id="{{ user.id }}"
+                            data-username="{{ user.username }}"
+                            data-image="{{ user.image or '' }}">
+                        <i class="fas fa-cog me-1"></i> Edit
+                    </button>
+                    
+                    {% if session['user'] != user.username %}
+                    <a href="{{ url_for('admin_users_delete', id=user.id) }}" 
+                       class="btn btn-light text-danger btn-sm rounded-3 px-3 fw-bold" 
+                       onclick="return confirm('Hapus admin {{ user.username }}? Tindakan ini tidak dapat dibatalkan.')">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                    {% else %}
+                    <span class="badge bg-success bg-opacity-10 text-success py-2 px-3 rounded-3 border border-success border-opacity-25">
+                        <i class="fas fa-check-circle me-1"></i> Akun Saya
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <div class="opacity-50 mb-3">
+            <i class="fas fa-users-slash fa-4x text-muted"></i>
+        </div>
+        <h5 class="text-muted fw-normal">Belum ada data administrator.</h5>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="addAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header border-bottom-0 ps-4 pe-4 pt-4">
+                <h5 class="modal-title fw-bold">Tambah Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('admin_users_add') }}" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">USERNAME</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" class="form-control bg-light border-start-0" placeholder="Username baru" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">PASSWORD</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="fas fa-lock"></i></span>
+                            <input type="password" name="password" class="form-control bg-light border-start-0" placeholder="Password kuat" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">FOTO PROFIL</label>
+                        <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm">Simpan Admin</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-primary text-white border-bottom-0">
+                <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-2"></i>Edit Profil</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('admin_users_update') }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="editUserId">
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <div id="currentPhotoArea" class="rounded-circle shadow-sm overflow-hidden border border-3 border-white" style="width: 100px; height: 100px;">
+                                </div>
+                            <label for="editImageInput" class="position-absolute bottom-0 end-0 bg-white text-primary rounded-circle shadow p-2 border cursor-pointer" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;" title="Ganti Foto">
+                                <i class="fas fa-camera small"></i>
+                            </label>
+                        </div>
+                        <input type="file" name="image" id="editImageInput" class="d-none" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
+                        <p class="small text-muted mt-2 mb-0">Klik ikon kamera untuk mengganti foto</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold">USERNAME</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-user"></i></span>
+                            <input type="text" name="username" id="editUsername" class="form-control border-start-0 text-dark fw-bold" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold">PASSWORD BARU</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-key"></i></span>
+                            <input type="password" name="password" class="form-control border-start-0" placeholder="Biarkan kosong jika tidak diganti">
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success py-2 fw-bold rounded-3 shadow-sm">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Logic Modal Edit
+    const editUserModal = document.getElementById('editUserModal');
+    if (editUserModal) {
+        editUserModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const username = button.getAttribute('data-username');
+            const image = button.getAttribute('data-image');
+
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUsername').value = username;
+
+            const photoArea = document.getElementById('currentPhotoArea');
+            if(image) {
+                photoArea.innerHTML = `<img src="/static/uploads/${image}" class="w-100 h-100 object-fit-cover">`;
+            } else {
+                photoArea.innerHTML = `<div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted"><i class="fas fa-user fa-3x"></i></div>`;
+            }
+        });
+    }
+
+    // Logic Preview Image saat Upload
+    function previewImage(input) {
+        const photoArea = document.getElementById('currentPhotoArea');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoArea.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover">`;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .mt-n5 { margin-top: -3rem !important; } /* Agar foto naik ke atas cover */
+    
+    .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .card-hover:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.08) !important; }
+
+    /* Animasi Pulse untuk Admin Aktif */
+    .pulse-animation {
+        animation: pulse-green 2s infinite;
+        box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7);
+    }
+
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+    }
+</style>
+
+{% endblock %}
