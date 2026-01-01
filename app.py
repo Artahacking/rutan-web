@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, send_from_directory, abort
 import mysql.connector
 import os
 import pandas as pd
@@ -15,6 +15,7 @@ app = Flask(__name__)
 app.secret_key = config.SECRET_KEY
 app.config['UPLOAD_FOLDER'] = config.UPLOAD_FOLDER
 
+# Pastikan folder upload benar-benar ada saat aplikasi start
 if not os.path.exists(app.config['UPLOAD_FOLDER']):
     os.makedirs(app.config['UPLOAD_FOLDER'])
 
@@ -25,6 +26,26 @@ def get_db():
 
 def allowed_file(filename, allowed_types):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_types
+
+# --- ROUTE KHUSUS DOWNLOAD FILE (FIXED) ---
+@app.route('/download/file/<filename>')
+def download_file(filename):
+    try:
+        # Cek apakah file benar-benar ada di folder sebelum dikirim
+        safe_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        if os.path.exists(safe_path):
+            # as_attachment=True MEMAKSA browser untuk "Save As" / Download
+            # bukan membuka preview PDF di tab baru
+            return send_from_directory(
+                app.config['UPLOAD_FOLDER'], 
+                filename, 
+                as_attachment=True
+            )
+        else:
+            return "File tidak ditemukan di server.", 404
+    except Exception as e:
+        return f"Terjadi kesalahan saat mengunduh: {str(e)}", 500
 
 # --- ROUTES PUBLIK ---
 
@@ -82,15 +103,12 @@ def layanan_litmas():
 @app.route('/download/litmas')
 def download_litmas():
     conn = get_db()
-    # Gunakan pandas untuk membaca SQL langsung ke DataFrame
     query = "SELECT nama_wbp, pidana_tahun, pidana_bulan, besaran_denda, subs_bulan FROM litmas_data ORDER BY id DESC"
     df = pd.read_sql(query, conn)
     conn.close()
 
-    # Rename kolom agar lebih rapi di Excel
     df.columns = ['Nama WBP', 'Pidana (Tahun)', 'Pidana (Bulan)', 'Besaran Denda', 'Subsider (Bulan)']
 
-    # Buat file Excel di memori (tanpa simpan ke disk)
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='Data Litmas')
@@ -122,7 +140,6 @@ def download_bebas():
     df = pd.read_sql(query, conn)
     conn.close()
 
-    # Rename kolom
     df.columns = ['Nama WBP', 'Tanggal Ekspirasi', 'Keterangan']
 
     output = io.BytesIO()
@@ -349,7 +366,7 @@ def admin_litmas_delete(id):
     flash('Data berhasil dihapus', 'warning')
     return redirect(url_for('admin_litmas'))
 
-# --- FITUR BARU: ADMIN KELOLA WBP BEBAS (CRUD) ---
+# --- ADMIN KELOLA WBP BEBAS (CRUD) ---
 @app.route('/admin/bebas', methods=['GET'])
 def admin_bebas():
     if 'user' not in session: return redirect(url_for('login'))
@@ -367,7 +384,7 @@ def admin_bebas_add():
     cursor = conn.cursor()
     
     nama = request.form['nama']
-    tgl = request.form['tgl'] # Format dari form HTML date adalah YYYY-MM-DD
+    tgl = request.form['tgl']
     ket = request.form['ket']
     
     cursor.execute("INSERT INTO wbp_bebas (nama_wbp, tgl_ekspirasi, keterangan) VALUES (%s, %s, %s)",
@@ -405,7 +422,6 @@ def admin_bebas_delete(id):
     conn.close()
     flash('Data berhasil dihapus', 'warning')
     return redirect(url_for('admin_bebas'))
-# -------------------------------------------------
 
 @app.route('/admin/users')
 def admin_users():
