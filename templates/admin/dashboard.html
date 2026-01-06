@@ -1,0 +1,156 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+        <div>
+            <h1 class="fw-bold text-dark">Dashboard Overview</h1>
+            <p class="text-muted">Selamat datang kembali, Ringkasan statistik sistem Anda.</p>
+        </div>
+        <div class="date-display text-muted">
+            <i class="far fa-calendar-alt me-2"></i> <span id="currentDate"></span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ url_for('admin_wbp') }}" class="text-decoration-none">
+                <div class="card bg-primary text-white h-100 shadow border-0 hover-scale position-relative overflow-hidden">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center z-2 position-relative">
+                            <div>
+                                <h6 class="text-uppercase fw-bold text-white-50 mb-1">Total WBP</h6>
+                                <h2 class="display-5 fw-bold mb-0">{{ stats.wbp }}</h2>
+                                <span class="badge bg-white text-primary mt-2 rounded-pill">
+                                    <i class="fas fa-pen me-1"></i> Klik untuk Update
+                                </span>
+                            </div>
+                            <div class="icon-bg">
+                                <i class="fas fa-users-slash fa-4x text-white opacity-25"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-info text-white h-100 shadow border-0 hover-scale position-relative overflow-hidden">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center z-2 position-relative">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 mb-1">Berita Terbit</h6>
+                            <h2 class="display-5 fw-bold mb-0">{{ stats.news }}</h2>
+                            <a href="{{ url_for('admin_list', category='berita') }}" class="text-white text-decoration-none small mt-2 d-inline-block opacity-75 hover-underline">
+                                Lihat Detail <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                        <div class="icon-bg">
+                            <i class="fas fa-newspaper fa-4x text-white opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white h-100 shadow border-0 hover-scale position-relative overflow-hidden">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center z-2 position-relative">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 mb-1">Pesan Masuk</h6>
+                            <h2 class="display-5 fw-bold mb-0">{{ stats.messages }}</h2>
+                            <a href="{{ url_for('admin_list', category='pesan') }}" class="text-white text-decoration-none small mt-2 d-inline-block opacity-75 hover-underline">
+                                Lihat Inbox <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                        <div class="icon-bg">
+                            <i class="fas fa-envelope-open-text fa-4x text-white opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white h-100 shadow border-0 hover-scale position-relative overflow-hidden">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center z-2 position-relative">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 mb-1">Total Galeri</h6>
+                            <h2 class="display-5 fw-bold mb-0">{{ stats.gallery }}</h2>
+                            <a href="{{ url_for('admin_list', category='galeri') }}" class="text-white text-decoration-none small mt-2 d-inline-block opacity-75 hover-underline">
+                                Kelola Foto <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                        <div class="icon-bg">
+                            <i class="fas fa-images fa-4x text-white opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-dark text-white h-100 shadow border-0 hover-scale position-relative overflow-hidden">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center z-2 position-relative">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-white-50 mb-1">Administrator</h6>
+                            <h2 class="display-5 fw-bold mb-0">{{ stats.users }}</h2>
+                            <a href="{{ url_for('admin_users') }}" class="text-white text-decoration-none small mt-2 d-inline-block opacity-75 hover-underline">
+                                Kelola Admin <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                        <div class="icon-bg">
+                            <i class="fas fa-user-shield fa-4x text-white opacity-25"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="m-0 fw-bold text-primary"><i class="fas fa-info-circle me-1"></i> Informasi Sistem</h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Selamat datang di Panel Admin Website Rutan. Gunakan menu di sidebar sebelah kiri untuk mengelola konten website seperti Berita, Layanan, Profil, dan Data Warga Binaan.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-scale {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-scale:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    }
+    .icon-bg {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1;
+    }
+    .hover-underline:hover {
+        text-decoration: underline !important;
+        opacity: 1;
+    }
+</style>
+
+<script>
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
+</script>
+
+{% endblock %}

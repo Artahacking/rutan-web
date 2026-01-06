@@ -1,0 +1,322 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<style>
+    /* --- TEMA BARU (SEIRAMA DENGAN GAMBAR PODIUM/TEMBOK) --- */
+
+    :root {
+        --deep-blue: #0a2342; /* Biru tua gelap */
+        --gold-accent: #d4af37; /* Warna emas */
+        --wall-bg: #e3e7ed; /* Warna dasar tembok */
+    }
+
+    .page-wrapper-theme {
+        background-color: var(--wall-bg);
+        background-size: cover;
+        background-attachment: fixed;
+        padding-bottom: 60px;
+    }
+
+    h2.text-primary {
+        color: var(--deep-blue) !important;
+    }
+
+    .bg-warning.mx-auto.mt-2 {
+        background-color: var(--gold-accent) !important;
+        height: 5px !important; 
+    }
+
+    /* --- PERBAIKAN KARTU PEJABAT --- */
+    .pejabat-card {
+        border: none;
+        border-radius: 0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        background: transparent;
+        height: 100%; /* Pastikan kartu mengisi tinggi kolom */
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .pejabat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(212, 175, 55, 0.2) !important;
+    }
+
+    .pejabat-img-wrapper {
+        background-color: var(--deep-blue);
+        position: relative;
+        /* Padding atas dihapus agar foto bisa full */
+        padding-top: 0; 
+        text-align: center;
+        overflow: hidden;
+        /* Tinggi tetap agar semua kotak sama */
+        height: 350px; 
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+
+    .pejabat-img {
+        width: 100%;
+        height: 100%;
+        /* Kunci utama agar gambar seragam & tidak gepeng */
+        object-fit: cover; 
+        /* Mengatur posisi fokus gambar ke atas (wajah) */
+        object-position: top center; 
+        position: relative;
+        z-index: 10;
+    }
+
+    .wave-separator {
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        line-height: 0;
+        z-index: 20;
+    }
+
+    .wave-separator svg {
+        display: block;
+        width: calc(100% + 1.3px);
+        height: 40px;
+    }
+
+    .wave-separator .shape-fill {
+        fill: #FFFFFF;
+    }
+
+    .pejabat-info {
+        background: white;
+        text-align: center;
+        padding: 20px 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        /* Tinggi minimum agar teks panjang tidak merusak layout */
+        min-height: 130px; 
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+        flex-grow: 1; /* Agar info mengisi sisa ruang */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Teks vertikal di tengah */
+    }
+
+    .pejabat-name {
+        color: var(--deep-blue); 
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 1rem;
+        margin-bottom: 5px;
+        /* Membatasi nama maksimal 2 baris */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .pejabat-position {
+        color: #6c757d;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* --- PERBAIKAN SEJARAH SECTION --- */
+    .history-section {
+        background-color: transparent; 
+        padding: 60px 0;
+        border-top: none; 
+    }
+    
+    .history-card {
+        border: none;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+        background: #fff;
+    }
+    
+    .history-title {
+        color: var(--deep-blue);
+        font-weight: 700;
+        border-bottom: 3px solid var(--gold-accent);
+        display: inline-block;
+        padding-bottom: 10px;
+        margin-bottom: 25px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 35px;
+        margin-bottom: 30px;
+        border-left: 3px solid rgba(10, 35, 66, 0.2); 
+    }
+    
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: -11px;
+        top: 0;
+        width: 19px;
+        height: 19px;
+        border-radius: 50%;
+        background-color: var(--deep-blue);
+        border: 4px solid var(--gold-accent);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .timeline-year {
+        font-weight: 800;
+        color: var(--deep-blue);
+        margin-bottom: 8px;
+        display: block;
+        font-size: 1.1rem;
+    }
+
+    /* --- PERBAIKAN STRUKTUR ORGANISASI --- */
+    .struktur-section {
+        background: transparent;
+        padding: 60px 0 80px 0;
+    }
+    
+    .struktur-section h2 {
+        color: var(--deep-blue) !important;
+    }
+
+    .struktur-box {
+        border: none;
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        background: white;
+    }
+</style>
+
+<div class="page-wrapper-theme py-5">
+
+    <div class="container mb-5 text-center">
+        <h2 class="fw-bold text-primary text-uppercase" style="letter-spacing: 2px;">Profil Pejabat</h2>
+        <div class="bg-warning mx-auto mt-2" style="width: 100px; height: 4px; border-radius: 2px;"></div>
+    </div>
+
+    <div class="container mb-5">
+        {% if main %}
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-4 col-10">
+                <div class="pejabat-card shadow-sm">
+                    <div class="pejabat-img-wrapper">
+                        {% if main.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + main.image) }}" class="pejabat-img" alt="{{ main.title }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x400?text=No+Image" class="pejabat-img">
+                        {% endif %}
+                        <div class="wave-separator">
+                            <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                                <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="pejabat-info">
+                        <h5 class="pejabat-name" style="font-size: 1.2rem;">{{ main.title }}</h5>
+                        <p class="pejabat-position text-primary">{{ (main.content or 'KEPALA RUTAN') | striptags }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="row g-4 justify-content-center">
+            {% for point in points %}
+            <div class="col-md-3 col-sm-6">
+                <div class="pejabat-card shadow-sm h-100">
+                    <div class="pejabat-img-wrapper">
+                        {% if point.image %}
+                        <img src="{{ url_for('static', filename='uploads/' + point.image) }}" class="pejabat-img" alt="{{ point.title }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x400?text=No+Image" class="pejabat-img">
+                        {% endif %}
+                        <div class="wave-separator">
+                            <svg viewBox="0 0 500 150" preserveAspectRatio="none">
+                                <path d="M0.00,49.98 C149.99,150.00 349.20,-49.98 500.00,49.98 L500.00,150.00 L0.00,150.00 Z" style="stroke: none; fill: #fff;"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="pejabat-info">
+                        <div class="pejabat-name">{{ point.title }}</div>
+                        <div class="pejabat-position">{{ point.content | striptags }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <section class="history-section">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card history-card p-5">
+                        <h3 class="history-title"><i class="fas fa-history me-2"></i> Sejarah Kepenjaraan di Indonesia</h3>
+                        
+                        <div class="text-secondary" style="line-height: 1.8; text-align: justify;">
+                            <p>Perkembangan sistem kepenjaraan di Indonesia terbagi menjadi dua kurun waktu besar yang masing-masing memiliki karakteristik tersendiri, dipengaruhi oleh aspek sosial budaya, politik, dan ekonomi pada masanya.</p>
+                            
+                            <h5 class="fw-bold mt-5 mb-4" style="color: var(--deep-blue);">1. Era Pra-Kemerdekaan (1872 - 1945)</h5>
+                            <div class="ms-2">
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Periode Kerja Paksa (1872 - 1905)</span>
+                                    <p class="mb-0">Pada masa ini berlaku dualisme hukum pidana. Bagi penduduk pribumi (KUHP 1872), hukuman berupa pidana kerja paksa, denda, dan hukuman mati yang dilakukan di tempat terbuka. Sementara bagi golongan Eropa (KUHP 1866), diterapkan pidana penjara di dalam tembok tertutup.</p>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Periode Penjara Sentral (1905 - 1921)</span>
+                                    <p class="mb-0">Menjelang diberlakukannya KUHP 1918 (Wetboek Van Strafrecht Voor Nederland Indie), mulai dilakukan sentralisasi penampungan narapidana. Hukuman kerja paksa lebih dari 1 tahun mulai dilaksanakan di luar daerah asal terpidana, meskipun kemudian pada 1905 kebijakan ini diubah kembali ke lingkungan asal.</p>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Pendudukan Jepang (1942 - 1945)</span>
+                                    <p class="mb-0">Secara teori, Jepang memperkenalkan konsep reformasi dan rehabilitasi narapidana. Namun dalam praktiknya, yang terjadi adalah eksploitasi tenaga manusia untuk kepentingan perang Jepang. Kondisi ini menjadi lembaran hitam dalam sejarah kepenjaraan nasional.</p>
+                                </div>
+                            </div>
+
+                            <h5 class="fw-bold mt-5 mb-4" style="color: var(--deep-blue);">2. Era Kemerdekaan & Pemasyarakatan Nasional (1945 - 1963)</h5>
+                            <div class="ms-2">
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Periode Kepenjaraan RI I (1945 - 1950)</span>
+                                    <p class="mb-0">Masa perjuangan mempertahankan kemerdekaan ditandai dengan munculnya "Penjara Darurat". Penjara ini sering berpindah mengikuti pengungsian pejabat penjara dan berfungsi menahan mata-mata musuh, sekaligus membuktikan eksistensi hukum pemerintahan RI secara de jure dan de facto.</p>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Periode Kepenjaraan RI II (1950 - 1960)</span>
+                                    <p class="mb-0">Setelah terbentuknya NKRI, mulai direncanakan peraturan kepenjaraan baru. Lahirlah falsafah "Resosialisasi" yang bertujuan mengembalikan narapidana ke masyarakat, sebuah konsep modern dalam dunia pemasyarakatan internasional saat itu.</p>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-year">Periode Kepenjaraan RI III (1960 - 1963)</span>
+                                    <p class="mb-0">Fase transisi menuju Sistem Pemasyarakatan. Kebijakan mulai berorientasi pada Social Defense (PBB), yaitu integrasi karya narapidana dalam ekonomi nasional serta penanganan kejahatan akibat perubahan sosial. Fokus bergeser pada pembinaan menjelang bebas dan perawatan pasca-tahanan.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="struktur-section">
+        <div class="container text-center">
+            <h2 class="fw-bold text-dark text-uppercase mb-4" style="letter-spacing: 1px;">Struktur Organisasi</h2>
+            <p class="text-muted mb-5">Bagan Struktur Organisasi Rutan Kelas IIB Pangkalan Brandan</p>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="struktur-box">
+                        <img src="{{ url_for('static', filename='petinggi.jpg') }}" class="img-fluid rounded" alt="Struktur Organisasi Rutan">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div> 
+
+{% endblock %}

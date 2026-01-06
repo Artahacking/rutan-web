@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin Rutan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --sidebar-bg: #1e1e2d;
+            --sidebar-text: #9899ac;
+            --sidebar-active: #3699ff;
+            --sidebar-hover-bg: #2b2b40;
+            --main-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--main-bg);
+            margin: 0;
+            overflow-x: hidden; /* Sembunyikan scroll horizontal */
+        }
+
+        /* --- TEKNIK MENGHILANGKAN VISUAL SCROLLBAR (TAPI TETAP BISA SCROLL) --- */
+        
+        /* Untuk Chrome, Safari, dan Opera */
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0px;
+            background: transparent;
+        }
+
+        /* Untuk Firefox dan IE/Edge */
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Khusus Sidebar Menu agar tetap bisa discroll tapi tidak ada bar */
+        .sidebar-menu {
+            padding: 20px 15px;
+            flex-grow: 1;
+            overflow-y: auto; /* Tetap aktifkan fungsi scroll */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
+        }
+        .sidebar-menu::-webkit-scrollbar { 
+            display: none; /* Chrome/Safari/Webkit */
+        }
+        /* ---------------------------------------------------------------------- */
+
+        .sidebar {
+            height: 100vh;
+            width: 280px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: var(--sidebar-bg);
+            padding: 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .sidebar-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--sidebar-active);
+            padding: 3px;
+            background-color: #fff;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .user-greeting { color: #fff; font-weight: 600; font-size: 1.1rem; margin-bottom: 2px; }
+        .user-role { color: var(--sidebar-text); font-size: 0.85rem; }
+
+        .sidebar-menu p {
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            opacity: 0.7;
+        }
+
+        .sidebar-menu a {
+            padding: 12px 20px;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--sidebar-text);
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.2s ease;
+        }
+
+        /* Warna Icon Sidebar */
+        .sidebar-menu a i { width: 30px; font-size: 1.1rem; text-align: center; margin-right: 10px; }
+        
+        .sidebar-menu a:hover { background-color: var(--sidebar-hover-bg); color: #ffffff; transform: translateX(3px); }
+
+        .sidebar-footer { padding: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .btn-logout {
+            display: flex; align-items: center; justify-content: center; width: 100%; padding: 12px;
+            background-color: rgba(246, 78, 96, 0.15); color: #f64e60; border-radius: 10px;
+            text-decoration: none; font-weight: 600; transition: all 0.3s;
+        }
+        .btn-logout:hover { background-color: #f64e60; color: white; }
+
+        .content { margin-left: 280px; padding: 30px; min-height: 100vh; }
+        @media (max-width: 991px) { .sidebar { margin-left: -280px; } .content { margin-left: 0; } }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            {% if session.get('user_image') %}
+                <img src="{{ url_for('static', filename='uploads/' + session.get('user_image')) }}" alt="Admin" class="sidebar-logo">
+            {% else %}
+                <img src="{{ url_for('static', filename='rutan.jpg') }}" alt="Default" class="sidebar-logo">
+            {% endif %}
+            
+            <div class="user-greeting">{{ session.get('user', 'Admin') }}</div>
+            <div class="user-role">Administrator</div>
+        </div>
+        
+        <div class="sidebar-menu">
+            <a href="{{ url_for('admin_dashboard') }}">
+                <i class="fas fa-th-large text-primary"></i> Dashboard
+            </a>
+            
+            <p class="text-uppercase text-white text-opacity-50 fw-bold">Manajemen Konten</p>
+            
+            <a href="{{ url_for('admin_wbp') }}">
+                <i class="fas fa-chart-line text-warning"></i> Data WBP
+            </a>
+            
+            <a href="{{ url_for('admin_litmas') }}">
+                <i class="fas fa-table text-info"></i> Pengumuman Litmas
+            </a>
+            
+            <a href="{{ url_for('admin_bebas') }}">
+                <i class="fas fa-calendar-check text-danger"></i> WBP Bebas & Subsider
+            </a>
+            
+            <a href="{{ url_for('admin_list', category='slider') }}">
+                <i class="fas fa-images" style="color: #fd7e14;"></i> Slider Beranda
+            </a>
+
+            <a href="{{ url_for('admin_list', category='profil') }}">
+                <i class="fas fa-user-tie" style="color: #6f42c1;"></i> Profil
+            </a>
+
+            <a href="{{ url_for('admin_list', category='layanan') }}">
+                <i class="fas fa-concierge-bell" style="color: #20c997;"></i> Layanan
+            </a>
+
+            <a href="{{ url_for('admin_list', category='berita') }}">
+                <i class="fas fa-newspaper" style="color: #d63384;"></i> Berita
+            </a>
+
+            <a href="{{ url_for('admin_list', category='galeri') }}">
+                <i class="fas fa-camera text-success"></i> Galeri
+            </a>
+            
+            <p class="text-uppercase text-white text-opacity-50 fw-bold">User & Pesan</p>
+            
+            <a href="{{ url_for('admin_list', category='pesan') }}">
+                <i class="fas fa-envelope" style="color: #ffc107;"></i> Pesan Masuk
+            </a>
+
+            <a href="{{ url_for('admin_users') }}">
+                <i class="fas fa-users-cog text-light"></i> Manajemen Admin
+            </a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="btn-logout">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
+                <i class="fas fa-info-circle me-2"></i> {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        {% block content %}
+        {% endblock %}
+        
+        {% block admin_content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

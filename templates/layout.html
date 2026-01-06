@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutan Kelas IIB Pangkalan Brandan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    
+    <style>
+        /* --- 1. SETUP ANIMASI TIRAI (CURTAIN REVEAL) --- */
+
+        /* Layer Tirai Penutup */
+        .page-curtain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #003366; /* Warna Biru Tua Branding */
+            z-index: 99999; /* Pastikan di paling atas */
+            transform-origin: top center; /* Titik henti di atas */
+            animation: curtainUp 1.2s cubic-bezier(0.77, 0, 0.175, 1) forwards; /* Animasi halus */
+        }
+
+        /* Keyframes: Tirai naik ke atas */
+        @keyframes curtainUp {
+            0% {
+                transform: scaleY(1); /* Menutup penuh */
+            }
+            100% {
+                transform: scaleY(0); /* Terangkat habis ke atas */
+                visibility: hidden; /* Sembunyikan agar bisa di-klik bawahnya */
+            }
+        }
+
+        /* Animasi Konten Halaman (Muncul setelah tirai naik) */
+        .reveal-content {
+            opacity: 0; /* Mulai invisible */
+            animation: contentFadeInUp 1s ease-out forwards;
+            animation-delay: 0.6s; /* Tunggu sebentar sampai tirai setengah naik */
+        }
+
+        @keyframes contentFadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ----------------------------------------------- */
+
+        /* Tambahan CSS agar dropdown rapi saat di-hover */
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #003366;
+            font-weight: 600;
+        }
+        .hover-text-warning:hover { 
+            color: #ffc107 !important; 
+            transition: color 0.3s ease; 
+        }
+        /* Mengatur posisi dropdown agar tidak tertutup */
+        .dropdown-menu {
+            margin-top: 0.5rem;
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            /* Sedikit animasi saat dropdown muncul */
+            animation: dropdownFade 0.3s ease-out;
+        }
+        @keyframes dropdownFade {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <div class="page-curtain"></div>
+
+    <div class="reveal-content d-flex flex-column min-vh-100 flex-grow-1">
+        
+        <nav class="navbar navbar-expand-lg sticky-top navbar-dark py-3" style="background-color: #003366;">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center gap-3" href="{{ url_for('index') }}">
+                    <div class="d-flex align-items-center gap-2">
+                        <img src="{{ url_for('static', filename='Logo Kemenimipas.png') }}" height="50" alt="Logo Kemenimipas">
+                        <img src="{{ url_for('static', filename='Logo Pemasyarakatan.png') }}" height="50" alt="Logo PAS">
+                        <img src="{{ url_for('static', filename='rutan.jpg') }}" height="50" alt="Logo Rutan" style="border-radius: 50%;"> 
+                    </div>
+                    <div class="d-none d-lg-block ms-2">
+                        <span class="d-block fw-bold lh-1 text-white" style="font-size: 1.1rem; letter-spacing: 1px;">RUTAN KELAS IIB</span>
+                        <span class="d-block fw-light small text-warning" style="letter-spacing: 2px;">PANGKALAN BRANDAN</span>
+                    </div>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto text-uppercase fw-semibold" style="font-size: 0.9rem;">
+                        <li class="nav-item"><a class="nav-link px-3 text-white" href="{{ url_for('index') }}">Beranda</a></li>
+                        <li class="nav-item"><a class="nav-link px-3 text-white" href="{{ url_for('profil') }}">Profil</a></li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle px-3 text-white" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Layanan
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('layanan') }}">
+                                        <i class="fas fa-info-circle me-2 text-primary"></i> Informasi Layanan
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('layanan_litmas') }}">
+                                        <i class="fas fa-table me-2 text-success"></i> Pengumuman Litmas
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item py-2" href="{{ url_for('layanan_bebas') }}">
+                                        <i class="fas fa-calendar-check me-2 text-danger"></i> Daftar WBP Bebas & Subsider
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link px-3 text-white" href="{{ url_for('berita') }}">Berita</a></li>
+                        <li class="nav-item"><a class="nav-link px-3 text-white" href="{{ url_for('galeri') }}">Galeri</a></li>
+                        <li class="nav-item"><a class="nav-link px-3 text-white" href="{{ url_for('kontak') }}">Kontak</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        <main class="flex-grow-1">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="text-white mt-auto" style="background-color: #002244; border-top: 5px solid #F4D03F;">
+            
+            <div class="container py-5">
+                <div class="row gy-4 align-items-center">
+                    
+                    <div class="col-md-7 text-center text-md-start">
+                        <h5 class="fw-bold mb-3 text-uppercase" style="letter-spacing: 1px;">Rutan Kelas IIB Pangkalan Brandan</h5>
+                        <p class="small mb-1"><i class="fas fa-map-marker-alt me-2 text-warning"></i> Jl. Stasiun No.9, Brandan Tim. Baru, Kec. Babalan, Kabupaten Langkat, Sumatera Utara 20857</p>
+                        <p class="small mb-1"><i class="fas fa-phone me-2 text-warning"></i> (061) 12345678</p>
+                        <p class="small mb-0"><i class="fas fa-envelope me-2 text-warning"></i> humas@rutanbrandan.go.id</p>
+                        
+                        <div class="mt-4 d-flex gap-3 justify-content-center justify-content-md-start">
+                            <a href="https://www.instagram.com/rutanpbrandan?igsh=MTBramFtc3ltZmM2Mw==" target="_blank" class="text-white hover-text-warning" title="Instagram"><i class="fab fa-instagram fa-2x"></i></a>
+                            <a href="#" class="text-white hover-text-warning" title="Twitter / X"><i class="fab fa-x-twitter fa-2x"></i></a>
+                            <a href="https://www.tiktok.com/@rutanbrandan?_r=1&_t=ZS-92Z077AHcAO" target="_blank" class="text-white hover-text-warning" title="TikTok"><i class="fab fa-tiktok fa-2x"></i></a>
+                            <a href="https://youtube.com/@rutanbrandan8821?si=-6pSdqnYHo9W9wCZ" target="_blank" class="text-white hover-text-warning" title="YouTube"><i class="fab fa-youtube fa-2x"></i></a>
+                            <a href="#" class="text-white hover-text-warning" title="WhatsApp"><i class="fab fa-whatsapp fa-2x"></i></a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5 text-center text-md-end">
+                        <div class="d-inline-flex align-items-center gap-3">
+                            <img src="{{ url_for('static', filename='Logo Kemenimipas.png') }}" alt="Logo Kemenimipas" style="height: 80px; width: auto;">
+                            <img src="{{ url_for('static', filename='Logo Pemasyarakatan.png') }}" alt="Logo PAS" style="height: 80px; width: auto;">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="py-3 text-center" style="background-color: #001a33; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div class="container">
+                    <p class="small m-0 text-white">
+                        &copy; Copyright <strong>Rutan Kelas IIB Pangkalan Brandan</strong>. All Rights Reserved
+                    </p>
+                </div>
+            </div>
+
+        </footer>
+    </div> <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

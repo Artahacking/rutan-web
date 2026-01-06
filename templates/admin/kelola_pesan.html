@@ -1,0 +1,163 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold text-dark">Kelola Pesan Masuk</h3>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase small text-muted">
+                    <tr>
+                        <th class="text-center py-3" style="width: 5%;">No</th>
+                        <th style="width: 20%;">Pengirim</th>
+                        <th style="width: 15%;">No WhatsApp</th>
+                        <th style="width: 35%;">Isi Pesan</th>
+                        <th style="width: 15%;">Tanggal</th>
+                        <th class="text-end pe-4" style="width: 15%;">Aksi</th> </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td class="text-center fw-bold text-muted">{{ loop.index }}</td>
+                        
+                        <td class="fw-bold text-primary">{{ item.name }}</td>
+                        
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                <i class="fab fa-whatsapp text-success me-1"></i> {{ item.phone }}
+                            </span>
+                        </td>
+                        
+                        <td>
+                            <div class="p-2 bg-light rounded text-muted small fst-italic" style="max-width: 350px;">
+                                "{{ item.message }}"
+                            </div>
+                        </td>
+                        
+                        <td><small class="text-muted fw-medium">{{ item.created_at }}</small></td>
+                        
+                        <td class="pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <button class="btn btn-success btn-sm px-3 shadow-sm text-nowrap" 
+                                        onclick="openReplyModal('{{ item.phone }}', '{{ item.name }}')"
+                                        title="Balas via WhatsApp">
+                                    <i class="fas fa-paper-plane me-1"></i> Balas
+                                </button>
+                                
+                                <a href="{{ url_for('admin_delete', category=category, id=item.id) }}" 
+                                   class="btn btn-outline-danger btn-sm px-2" 
+                                   onclick="return confirm('Hapus pesan ini?')" title="Hapus">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="mb-3 opacity-50" alt="Empty">
+                            <p class="mb-0">Belum ada pesan masuk hari ini.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            
+            <div class="modal-header bg-success text-white px-4 py-3">
+                <div>
+                    <h5 class="modal-title fw-bold"><i class="fab fa-whatsapp me-2"></i>Balas Pesan Pengunjung</h5>
+                    <small class="opacity-75">Pastikan aplikasi WhatsApp terinstall atau login di Web.</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4 bg-light">
+                <form id="replyForm" onsubmit="sendWhatsapp(event)">
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">Kepada (Nomor WhatsApp)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="fas fa-phone text-muted"></i></span>
+                            <input type="text" class="form-control border-start-0 bg-white fw-bold text-success" 
+                                   id="targetPhone" readonly style="letter-spacing: 1px;">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold text-dark mb-0">Isi Pesan Balasan</label>
+                            <span class="badge bg-warning text-dark">Bisa Diedit</span>
+                        </div>
+                        
+                        <textarea class="form-control p-3 shadow-sm border-0" 
+                                  id="replyMessage" 
+                                  rows="12" 
+                                  style="font-size: 1.1rem; line-height: 1.6; resize: vertical; border-left: 5px solid #198754 !important;"
+                                  placeholder="Tulis balasan Anda disini..."></textarea>
+                        <div class="form-text mt-2 text-end">Silakan sesuaikan isi pesan di atas sebelum mengirim.</div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success btn-lg shadow fw-bold py-3">
+                            <i class="fab fa-whatsapp me-2 fa-lg"></i> Buka WhatsApp & Kirim Pesan
+                        </button>
+                        <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fungsi untuk membuka modal dan menyiapkan template
+    function openReplyModal(phone, name) {
+        // Format Nomor HP: Ganti 08 di depan jadi 628
+        let formattedPhone = phone.trim();
+        // Hapus karakter non-digit (spasi, strip, dll)
+        formattedPhone = formattedPhone.replace(/\D/g, ''); 
+        
+        if (formattedPhone.startsWith('0')) {
+            formattedPhone = '62' + formattedPhone.substring(1);
+        }
+
+        // Set nilai ke input modal
+        document.getElementById('targetPhone').value = formattedPhone;
+
+        // Buat Template Pesan Default yang Profesional
+        let template = `Halo Bapak/Ibu *${name}*,\n\nTerimakasih telah menghubungi *Rutan Kelas IIB Pangkalan Brandan*.\n\nMenanggapi pertanyaan/pesan Anda, berikut kami sampaikan informasinya:\n\n------------------------------------------------\n(Tulis jawaban Anda disini...)\n------------------------------------------------\n\nJika ada hal lain yang ingin ditanyakan, silakan balas pesan ini.\n\nSalam Hormat,\n*Humas Rutan Pangkalan Brandan*`;
+        
+        document.getElementById('replyMessage').value = template;
+
+        // Tampilkan Modal
+        var myModal = new bootstrap.Modal(document.getElementById('replyModal'));
+        myModal.show();
+    }
+
+    // Fungsi untuk mengirim pesan (Membuka tab baru ke API WA)
+    function sendWhatsapp(event) {
+        event.preventDefault();
+        
+        let phone = document.getElementById('targetPhone').value;
+        let message = document.getElementById('replyMessage').value;
+        
+        // Encode pesan agar aman di URL
+        let encodedMessage = encodeURIComponent(message);
+        
+        // Buka Link WhatsApp
+        let waLink = `https://wa.me/${phone}?text=${encodedMessage}`;
+        window.open(waLink, '_blank');
+    }
+</script>
+
+{% endblock %}

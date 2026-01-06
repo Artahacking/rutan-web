@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold text-primary text-uppercase">Pengumuman Litmas</h2>
+            <p class="text-muted">Daftar Nama Warga Binaan Yang Bisa Usul Litmas</p>
+            <div class="bg-warning mx-auto" style="width: 80px; height: 4px;"></div>
+        </div>
+
+        <div class="text-end mb-3">
+            <a href="{{ url_for('download_litmas') }}" class="btn btn-success rounded-pill shadow-sm">
+                <i class="fas fa-file-excel me-2"></i> Download Data Excel
+            </a>
+        </div>
+
+        <div class="card border-0 shadow rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white p-4">
+                <h5 class="mb-0 fw-bold text-center"><i class="fas fa-clipboard-list me-2"></i> TABEL DAFTAR NAMA WBP YANG SUDAH BISA USUL LITMAS</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="bg-light text-primary">
+                            <tr>
+                                <th class="py-3 ps-4 text-center">No</th>
+                                <th class="py-3">Nama WBP</th>
+                                <th class="py-3 text-center">Lama Pidana (Thn)</th>
+                                <th class="py-3 text-center">Lama Pidana (Bln)</th>
+                                <th class="py-3">Besaran Denda</th>
+                                <th class="py-3 text-center">Subs (Bln)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data %}
+                            <tr>
+                                <td class="text-center fw-bold text-secondary ps-4">{{ loop.index }}</td>
+                                <td class="fw-semibold text-dark">{{ item.nama_wbp }}</td>
+                                <td class="text-center">{{ item.pidana_tahun }}</td>
+                                <td class="text-center">{{ item.pidana_bulan }}</td>
+                                <td class="text-danger fw-bold">{{ item.besaran_denda }}</td>
+                                <td class="text-center">{{ item.subs_bulan }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-folder-open fa-3x mb-3"></i><br>
+                                    Belum ada data pengumuman saat ini.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('layanan') }}" class="btn btn-outline-primary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> Kembali ke Layanan
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
