@@ -1,0 +1,395 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --bg-body: #f8fafc;
+        --card-radius: 20px;
+        --text-dark: #1e293b;
+    }
+
+    body {
+        background-color: var(--bg-body);
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #6366f1; 
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- PAGE HEADER --- */
+    .header-minimal {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 1.5rem;
+    }
+
+    /* --- CARD & TABLE --- */
+    .card-modern {
+        border: none;
+        border-radius: var(--card-radius);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        background: white;
+        overflow: hidden;
+    }
+
+    .table-modern thead th {
+        background: #f1f5f9;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.8px;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .table-modern tbody tr:hover td { background-color: #f8fafc; }
+
+    /* --- ACTION BUTTONS --- */
+    .btn-icon-action {
+        width: 38px; height: 38px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+        border-radius: 12px; transition: all 0.3s; border: none;
+    }
+    .btn-wa { background-color: #dcfce7; color: #16a34a; }
+    .btn-wa:hover { background-color: #16a34a; color: #fff; transform: translateY(-3px); box-shadow: 0 4px 10px rgba(22, 163, 74, 0.2); }
+    .btn-del { background-color: #fee2e2; color: #dc2626; }
+    .btn-del:hover { background-color: #dc2626; color: #fff; transform: translateY(-3px); box-shadow: 0 4px 10px rgba(220, 38, 38, 0.2); }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Avatar Initial */
+    .avatar-circle {
+        width: 45px; height: 45px;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.2rem;
+        box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+    }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="header-minimal d-flex justify-content-between align-items-center">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Kelola Pesan Masuk</h3>
+            <p class="text-muted small mb-0">Daftar pesan dari form kontak website.</p>
+        </div>
+        <div>
+            <span class="badge bg-white text-dark border px-3 py-2 rounded-pill shadow-sm">
+                Total: <b>{{ data|length }}</b> Pesan
+            </span>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center bg-white px-4 py-3">
+            <div class="rounded-circle p-2 bg-{{ category }} bg-opacity-10 text-{{ category }} me-3">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="fw-medium">{{ message }}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card card-modern">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-modern align-middle mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" style="width: 5%;">No</th>
+                            <th style="width: 25%;">Pengirim</th>
+                            <th style="width: 20%;">Kontak</th>
+                            <th style="width: 35%;">Isi Pesan</th>
+                            <th class="text-center" style="width: 15%;">Aksi</th> 
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data %}
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">{{ loop.index }}</td>
+                            
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle me-3">
+                                        {{ item.name[0] | upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ item.name }}</div>
+                                        <small class="text-muted"><i class="far fa-clock me-1"></i> {{ item.created_at }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="d-flex align-items-center text-success bg-success bg-opacity-10 px-3 py-1 rounded-pill d-inline-flex border border-success border-opacity-25">
+                                    <i class="fab fa-whatsapp me-2"></i> 
+                                    <span class="fw-bold small">{{ item.phone }}</span>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <div class="p-3 bg-light rounded-3 text-muted small fst-italic border border-light">
+                                    "{{ item.message }}"
+                                </div>
+                            </td>
+                            
+                            <td class="text-center pe-4">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-icon-action btn-wa" 
+                                            onclick="openReplyModal('{{ item.phone }}', '{{ item.name }}')"
+                                            data-bs-toggle="tooltip" 
+                                            title="Balas via WhatsApp">
+                                        <i class="fab fa-whatsapp fs-5"></i>
+                                    </button>
+                                    
+                                    <button class="btn btn-icon-action btn-del" 
+                                            onclick="openDeleteModal('{{ url_for('admin_delete', category='pesan', id=item.id) }}')" 
+                                            data-bs-toggle="tooltip" 
+                                            title="Hapus Pesan">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <div class="d-flex flex-column align-items-center opacity-50">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p class="mb-0 fw-bold">Belum ada pesan masuk hari ini.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-success text-white px-4 py-3 border-0">
+                <h5 class="modal-title fw-bold"><i class="fab fa-whatsapp me-2"></i>Balas Pesan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 bg-white">
+                <form id="replyForm" onsubmit="sendWhatsapp(event)">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small text-uppercase">Nomor Tujuan</label>
+                        <input type="text" class="form-control bg-light border-0 fw-bold text-success" id="targetPhone" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small text-uppercase">Isi Pesan</label>
+                        <textarea class="form-control bg-light border-0 p-3" id="replyMessage" rows="10" style="resize: none;"></textarea>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success fw-bold py-3 rounded-3 shadow-sm">
+                            <i class="fas fa-paper-plane me-2"></i> Kirim Sekarang
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Pesan?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus pesan ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="showLoader()">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const onclick = this.getAttribute("onclick"); 
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                // Kondisi: href valid, bukan anchor, bukan tab baru, bukan modal, bukan fungsi JS custom
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !onclick && !toggle) {
+                    showLoader();
+                }
+            });
+        });
+        
+        // Aktifkan Tooltip Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+
+    // --- 2. DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+
+    // --- 3. WHATSAPP LOGIC ---
+    function openReplyModal(phone, name) {
+        let formattedPhone = phone.trim().replace(/\D/g, ''); 
+        if (formattedPhone.startsWith('0')) formattedPhone = '62' + formattedPhone.substring(1);
+
+        document.getElementById('targetPhone').value = formattedPhone;
+
+        let template = `Halo Bapak/Ibu *${name}*,\n\nTerimakasih telah menghubungi *Rutan Kelas IIB Pangkalan Brandan*.\n\nMenanggapi pesan Anda, berikut kami sampaikan:\n\n------------------------------------------------\n(Tulis jawaban Anda disini...)\n------------------------------------------------\n\nSalam Hormat,\n*Humas Rutan Pangkalan Brandan*`;
+        document.getElementById('replyMessage').value = template;
+
+        var myModal = new bootstrap.Modal(document.getElementById('replyModal'));
+        myModal.show();
+    }
+
+    function sendWhatsapp(event) {
+        event.preventDefault();
+        let phone = document.getElementById('targetPhone').value;
+        let message = document.getElementById('replyMessage').value;
+        let encodedMessage = encodeURIComponent(message);
+        let waLink = `https://wa.me/${phone}?text=${encodedMessage}`;
+        window.open(waLink, '_blank');
+    }
+</script>
+
+{% endblock %}

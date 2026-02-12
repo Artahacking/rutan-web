@@ -1,0 +1,441 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        /* Palette Warna Ocean Vibrant */
+        --ocean-gradient: linear-gradient(135deg, #0061ff 0%, #60efff 100%);
+        --gradient-royal: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --glass-white: rgba(255, 255, 255, 0.95);
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --border-radius-xl: 24px;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f1f5f9;
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    /* Default: Opacity 1 (Muncul) */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Class untuk menyembunyikan loader (Fade Out) */
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #0061ff; /* Pakai warna biru ocean biar matching sama tema WBP */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--ocean-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+
+    /* --- HERO HEADER --- */
+    .hero-header {
+        background: var(--ocean-gradient);
+        border-radius: var(--border-radius-xl);
+        padding: 2.5rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(0, 97, 255, 0.3);
+        margin-bottom: 2rem;
+    }
+
+    .hero-pattern {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-image: radial-gradient(circle at 20% 150%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%);
+        pointer-events: none;
+    }
+
+    .hero-icon-bg {
+        position: absolute;
+        right: -20px;
+        bottom: -40px;
+        font-size: 12rem;
+        opacity: 0.1;
+        transform: rotate(-10deg);
+        pointer-events: none;
+    }
+
+    .breadcrumb-item a { color: rgba(255,255,255,0.8); text-decoration: none; }
+    .breadcrumb-item.active { color: white; font-weight: 600; }
+
+    /* --- MODERN CARD --- */
+    .card-vibrant {
+        border: none;
+        border-radius: var(--border-radius-xl);
+        background: white;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    /* --- LEFT SIDE (FORM) --- */
+    .form-section { padding: 3rem; }
+    
+    .form-label-custom {
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        display: block;
+    }
+
+    .input-group-modern {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 0.5rem;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+    }
+    
+    .input-group-modern:focus-within {
+        border-color: #0061ff;
+        box-shadow: 0 0 0 4px rgba(0, 97, 255, 0.1);
+        background: white;
+    }
+
+    .input-icon-wrapper {
+        width: 45px;
+        height: 45px;
+        background: #e0f2fe;
+        color: #0061ff;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        margin-right: 10px;
+    }
+
+    .form-control-modern {
+        border: none;
+        background: transparent;
+        font-size: 2rem; /* Besar agar fokus */
+        font-weight: 700;
+        color: var(--text-dark);
+        width: 100%;
+        outline: none;
+        padding-left: 10px;
+    }
+
+    .form-control-modern::placeholder { color: #cbd5e1; opacity: 0.5; }
+    
+    /* Remove arrows from number input */
+    .form-control-modern::-webkit-outer-spin-button,
+    .form-control-modern::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+    .btn-save {
+        background: var(--ocean-gradient);
+        border: none;
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(0, 97, 255, 0.2);
+    }
+    .btn-save:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0, 97, 255, 0.3); }
+
+    /* --- RIGHT SIDE (DISPLAY) --- */
+    .display-section {
+        background: var(--ocean-gradient);
+        color: white;
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        text-align: center;
+    }
+
+    .display-circle {
+        width: 220px;
+        height: 220px;
+        background: rgba(255,255,255,0.15);
+        border: 2px solid rgba(255,255,255,0.3);
+        backdrop-filter: blur(5px);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 0 30px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .display-number {
+        font-size: 5rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -2px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .display-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.9;
+        margin-top: 5px;
+    }
+
+    .status-badge {
+        background: rgba(255,255,255,0.2);
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        backdrop-filter: blur(4px);
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #4ade80; /* Green */
+        border-radius: 50%;
+        margin-right: 8px;
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @keyframes pulse-dot {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(74, 222, 128, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+    }
+
+    /* Decorative Shapes */
+    .shape-1 { position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+    .shape-2 { position: absolute; bottom: 20px; left: -30px; width: 80px; height: 80px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="hero-header d-flex align-items-center justify-content-between">
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-1" style="font-size: 2rem;">Statistik Warga Binaan</h2>
+            <p class="mb-0 opacity-75">Sistem monitoring jumlah penghuni rutan real-time.</p>
+        </div>
+        
+        <div class="position-relative z-1 d-none d-md-block">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Statistik WBP</li>
+                </ol>
+            </nav>
+        </div>
+
+        <div class="hero-pattern"></div>
+        <i class="fas fa-chart-pie hero-icon-bg"></i>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center bg-white">
+                    <div class="rounded-circle p-2 bg-{{ category }} bg-opacity-10 text-{{ category }} me-3">
+                        <i class="fas fa-{{ 'check' if category=='success' else 'info' }}"></i>
+                    </div>
+                    <div class="text-dark fw-medium">{{ message }}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="row justify-content-center">
+        <div class="col-xl-10">
+            <div class="card card-vibrant">
+                <div class="row g-0">
+                    
+                    <div class="col-lg-7 form-section bg-white">
+                        <div class="mb-5">
+                            <h4 class="fw-bold text-dark mb-2">Update Data Terbaru</h4>
+                            <p class="text-muted">Masukkan jumlah total WBP saat ini untuk diperbarui di halaman publik.</p>
+                        </div>
+
+                        <form method="POST" action="{{ url_for('admin_wbp') }}" onsubmit="showLoader()">
+                            <div class="mb-5">
+                                <label for="wbp_count" class="form-label-custom">Total Penghuni (Jiwa)</label>
+                                <div class="input-group-modern">
+                                    <div class="input-icon-wrapper">
+                                        <i class="fas fa-user-friends"></i>
+                                    </div>
+                                    <input type="number" 
+                                           class="form-control-modern" 
+                                           id="wbp_count" 
+                                           name="wbp_count" 
+                                           value="{{ current_count }}" 
+                                           placeholder="0"
+                                           required>
+                                </div>
+                                <div class="mt-3 d-flex align-items-center">
+                                    <i class="fas fa-info-circle text-info me-2"></i>
+                                    <small class="text-muted">Data ini akan langsung tampil di Homepage Website.</small>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-save">
+                                <i class="fas fa-sync-alt me-2"></i> Simpan Perubahan
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="col-lg-5 display-section">
+                        <div class="shape-1"></div>
+                        <div class="shape-2"></div>
+                        
+                        <div class="display-circle">
+                            <div class="display-number counter-value" data-target="{{ current_count }}">{{ current_count }}</div>
+                            <div class="display-label">Orang</div>
+                        </div>
+
+                        <h5 class="fw-bold mb-3">Status Publikasi</h5>
+                        
+                        <div class="status-badge">
+                            <span class="pulse-dot"></span>
+                            <span>Data Ditampilkan Live</span>
+                        </div>
+
+                        <div class="mt-5 text-white-50 small">
+                            <i class="far fa-clock me-1"></i> Terakhir diupdate oleh Admin
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                
+                if (href && href !== "#" && href !== "" && target !== "_blank") {
+                    showLoader();
+                }
+            });
+        });
+
+        // --- 2. EXISTING COUNTER ANIMATION ---
+        const counters = document.querySelectorAll('.counter-value');
+        counters.forEach(counter => {
+            const updateCount = () => {
+                const target = +counter.getAttribute('data-target');
+                const count = +counter.innerText;
+                const increment = target / 50; 
+
+                if (count < target) {
+                    counter.innerText = Math.ceil(count + increment);
+                    setTimeout(updateCount, 20);
+                } else {
+                    counter.innerText = target;
+                }
+            };
+            updateCount();
+        });
+    });
+</script>
+{% endblock %}F

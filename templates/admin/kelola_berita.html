@@ -1,0 +1,554 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+
+<style>
+    :root {
+        /* Palette Warna Premium */
+        --gradient-primary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --gradient-royal: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-icon: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --bg-soft: #f4f7fe;
+        --glass-white: rgba(255, 255, 255, 0.95);
+        --text-dark: #2d3748;
+    }
+
+    body {
+        background-color: var(--bg-soft);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    /* Update: Default Opacity 1 (Muncul) */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8); /* Lebih solid dikit biar isi belum rapi gak kelihatan */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999; /* Z-index paling tinggi */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* Class untuk menyembunyikan loader (Fade Out) */
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #667eea;
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--gradient-royal);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- STYLE LAINNYA TETAP SAMA --- */
+    .hero-header {
+        background: var(--gradient-royal);
+        border-radius: 20px;
+        padding: 2rem;
+        color: white;
+        box-shadow: 0 10px 25px -5px rgba(102, 126, 234, 0.4);
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .hero-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+    .hero-title { font-weight: 700; font-size: 1.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 15px; }
+    .breadcrumb-item a { color: white; text-decoration: underline; opacity: 0.8; }
+    .breadcrumb-item.active { color: rgba(255, 255, 255, 0.8) !important; }
+
+    .card-vibrant {
+        background: var(--glass-white);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-vibrant:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08); }
+    .card-header-vibrant { background: white; border-bottom: 1px solid #edf2f7; padding: 1.5rem; border-radius: 20px 20px 0 0; }
+
+    .form-label-custom { font-weight: 700; color: #4a5568; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-control-modern, .form-select-modern { border: 2px solid #e2e8f0; background-color: #f8fafc; border-radius: 12px; padding: 0.8rem 1rem; font-size: 1rem; transition: all 0.3s; width: 100%; }
+    .form-control-modern:focus, .form-select-modern:focus { background-color: white; border-color: #667eea; box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1); outline: none; }
+
+    .upload-box { border: 2px dashed #cbd5e0; background: #f7fafc; border-radius: 15px; padding: 2rem; text-align: center; transition: all 0.3s; cursor: pointer; position: relative; }
+    .upload-box:hover { background: #ebf4ff; border-color: #667eea; }
+    .upload-icon { font-size: 2.5rem; background: var(--gradient-royal); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem; }
+
+    .btn-gradient { background: var(--gradient-royal); border: none; color: white; border-radius: 12px; padding: 0.8rem 1.5rem; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(118, 75, 162, 0.3); transition: all 0.3s; }
+    .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(118, 75, 162, 0.4); color: white; }
+
+    .table-container { border-radius: 20px; overflow: hidden; }
+    .table-custom thead { background: var(--gradient-royal); color: white; }
+    .table-custom th { font-weight: 600; padding: 1.2rem 1rem; border: none; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }
+    .table-custom td { padding: 1.2rem 1rem; vertical-align: middle; border-bottom: 1px solid #edf2f7; color: var(--text-dark); background: white; }
+    .table-custom tr:hover td { background-color: #f7fafc; }
+
+    .btn-action { width: 38px; height: 38px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; border: none; margin: 0 3px; font-size: 1rem; }
+    .btn-action-view { background: #e6fffa; } .btn-action-view i { color: #38b2ac; } .btn-action-view:hover { background: #38b2ac; transform: scale(1.1); } .btn-action-view:hover i { color: white; }
+    .btn-action-edit { background: #fffaf0; } .btn-action-edit i { color: #dd6b20; } .btn-action-edit:hover { background: #ed8936; transform: scale(1.1); } .btn-action-edit:hover i { color: white; }
+    .btn-action-delete { background: #fff5f5; } .btn-action-delete i { color: #e53e3e; } .btn-action-delete:hover { background: #e53e3e; transform: scale(1.1); } .btn-action-delete:hover i { color: white; }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="hero-header d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="hero-title">
+            <i class="fas fa-newspaper fa-lg"></i> Kelola Berita
+        </h2>
+        <p class="mb-0 opacity-75 small">Manajemen artikel, publikasi, dan informasi rutan.</p>
+    </div>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Berita</li>
+        </ol>
+    </nav>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center" role="alert" style="border-left: 5px solid {{ '#48bb78' if category=='success' else '#f56565' }};">
+        <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' }} me-3 fs-5"></i>
+        <div>{{ message }}</div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="row g-4 mb-5">
+    <div class="col-12">
+        <form method="POST" action="{{ url_for('admin_add', category='berita') }}" enctype="multipart/form-data" onsubmit="showLoader()">
+            <div class="row g-4">
+                
+                <div class="col-lg-8">
+                    <div class="card card-vibrant h-100">
+                        <div class="card-header-vibrant">
+                            <h6 class="m-0 fw-bold text-dark"><i class="fas fa-pen-nib me-2 text-primary"></i> Konten Artikel</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <label class="form-label-custom">Judul Berita</label>
+                                    <input type="text" name="title" 
+                                           class="form-control form-control-modern" 
+                                           placeholder="Tulis judul yang menarik..." required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-custom">Kategori</label>
+                                    <select name="category" class="form-select form-select-modern">
+                                        <option value="Kegiatan Rutan">Kegiatan Rutan</option>
+                                        <option value="Informasi Publik">Informasi Publik</option>
+                                        <option value="Artikel Wawasan">Artikel Wawasan</option>
+                                        <option value="Pengumuman">Pengumuman</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="form-label-custom">Isi Berita</label>
+                                <div class="rounded-3 overflow-hidden border">
+                                    <textarea name="content" id="editor-konten" class="form-control"></textarea> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card card-vibrant h-100">
+                        <div class="card-header-vibrant bg-gradient-royal text-white" style="background: var(--gradient-royal); color: white;">
+                            <h6 class="m-0 fw-bold"><i class="fas fa-rocket me-2"></i> Publikasi</h6>
+                        </div>
+                        <div class="card-body p-4 d-flex flex-column">
+                            
+                            <div class="mb-4">
+                                <label class="form-label-custom">Penulis</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-0 ps-3" style="border: 2px solid #e2e8f0; border-right: none; border-radius: 12px 0 0 12px;">
+                                        <i class="fas fa-user-edit text-primary"></i>
+                                    </span>
+                                    <input type="text" name="author" 
+                                           class="form-control form-control-modern" 
+                                           style="border-left: none; border-radius: 0 12px 12px 0;"
+                                           placeholder="Nama Penulis" 
+                                           value="{{ session.get('user', 'Admin') }}">
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label-custom">Thumbnail</label>
+                                <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+                                    <i class="fas fa-cloud-arrow-up upload-icon"></i>
+                                    <h6 class="fw-bold text-dark mb-1">Upload Gambar</h6>
+                                    <p class="text-muted small mb-0">Klik disini (Max 2MB)</p>
+                                    <input type="file" name="image" id="fileInput" class="d-none" accept=".jpg,.jpeg,.png">
+                                </div>
+                                <div id="fileNameDisplay" class="mt-3 text-center badge bg-light text-primary border p-2 w-100 d-none text-truncate"></div>
+                            </div>
+
+                            <div class="mt-auto pt-3 border-top">
+                                <button type="submit" class="btn btn-gradient w-100">
+                                    <i class="fas fa-paper-plane me-2"></i> Terbitkan Sekarang
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card card-vibrant mb-5">
+    <div class="card-header-vibrant d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0 text-dark">Daftar Berita</h5>
+        <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">Total: {{ data|length }}</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive table-container">
+            <table class="table table-custom mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4" width="5%">No</th>
+                        <th width="10%">Visual</th>
+                        <th width="40%">Judul & Kategori</th>
+                        <th width="25%">Waktu & Penulis</th>
+                        <th class="text-end pe-4" width="20%">Opsi</th> 
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
+                        
+                        <td>
+                            {% if item.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + item.image) }}" class="rounded-3 shadow-sm border" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-3 bg-light d-flex align-items-center justify-content-center text-muted border" style="width: 50px; height: 50px;">
+                                <i class="fas fa-image fa-lg"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark text-truncate" style="max-width: 350px;">{{ item.title }}</span>
+                                <div class="mt-1">
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info rounded-pill px-2">
+                                        {{ item.category or 'Umum' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                             <div class="d-flex flex-column small">
+                                <span class="text-muted"><i class="far fa-clock me-1"></i> {{ item.created_at }}</span>
+                                <span class="fw-bold text-dark mt-1"><i class="fas fa-feather-alt me-1 text-primary"></i> {{ item.author }}</span>
+                            </div>
+                        </td>
+
+                        <td class="text-end pe-4">
+                            <button class="btn-action btn-action-view" 
+                                    data-title="{{ item.title }}"
+                                    data-author="{{ item.author }}"
+                                    data-category="{{ item.category }}"
+                                    data-image="{{ item.image or '' }}"
+                                    data-bs-toggle="modal" data-bs-target="#viewModal"
+                                    title="Lihat Detail">
+                                    <div class="d-none content-storage">{{ item.content | safe }}</div>
+                                <i class="fas fa-eye"></i>
+                            </button>
+
+                            <button class="btn-action btn-action-edit" 
+                                    data-id="{{ item.id }}"
+                                    data-title="{{ item.title }}"
+                                    data-author="{{ item.author }}"
+                                    data-category="{{ item.category }}"
+                                    data-bs-toggle="modal" data-bs-target="#editModal"
+                                    title="Edit Berita">
+                                    <div class="d-none content-storage">{{ item.content | safe }}</div>
+                                <i class="fas fa-pen-to-square"></i>
+                            </button>
+
+                            <a href="#" 
+                               class="btn-action btn-action-delete" 
+                               onclick="confirmDelete('{{ url_for('admin_delete', category='berita', id=item.id) }}')"
+                               title="Hapus Berita">
+                                <i class="fas fa-trash-can"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                <i class="fas fa-newspaper fs-1 mb-3" style="font-size: 3rem; color: #cbd5e0;"></i>
+                                <h6 class="text-muted">Belum ada data berita.</h6>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-light border-0 rounded-top-4 px-4 py-3">
+                <h5 class="modal-title fw-bold" id="viewTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <div class="d-flex align-items-center mb-4">
+                    <span class="badge bg-primary rounded-pill me-2" id="viewCategoryBadge">News</span>
+                    <small class="text-muted">Ditulis oleh: <span id="viewAuthor" class="fw-bold text-dark"></span></small>
+                </div>
+                <div id="viewImageArea" class="mb-4 rounded-3 overflow-hidden shadow-sm w-100"></div>
+                <div id="viewContent" class="lh-lg text-secondary"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header text-white px-4 py-3 rounded-top-4" style="background: var(--gradient-royal);">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i> Edit Berita</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light p-4">
+                <form method="POST" action="{{ url_for('admin_update', category='berita') }}" enctype="multipart/form-data" onsubmit="showLoader()">
+                    <input type="hidden" name="id" id="editId">
+                    
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <div class="card card-vibrant shadow-sm">
+                                <div class="card-body p-4">
+                                    <div class="row mb-3">
+                                        <div class="col-md-8">
+                                            <label class="form-label-custom">Judul Artikel</label>
+                                            <input type="text" name="title" id="editTitle" class="form-control form-control-modern fw-bold" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label-custom">Kategori</label>
+                                            <select name="category" id="editCategory" class="form-select form-select-modern">
+                                                <option value="Kegiatan Rutan">Kegiatan Rutan</option>
+                                                <option value="Informasi Publik">Informasi Publik</option>
+                                                <option value="Artikel Wawasan">Artikel Wawasan</option>
+                                                <option value="Pengumuman">Pengumuman</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="form-label-custom">Konten</label>
+                                        <textarea name="content" id="editor-edit" class="form-control"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card card-vibrant shadow-sm h-100">
+                                <div class="card-body p-4">
+                                    <div class="mb-4">
+                                        <label class="form-label-custom">Penulis</label>
+                                        <input type="text" name="author" id="editAuthor" class="form-control form-control-modern" required>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label-custom">Update Gambar</label>
+                                        <input type="file" name="image" class="form-control form-control-sm border rounded-3">
+                                        <small class="text-muted fst-italic d-block mt-1">*Biarkan kosong jika tidak diganti.</small>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-gradient w-100 mt-auto">Simpan Perubahan</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    CKEDITOR.config.versionCheck = false;
+
+    // --- LOGIC LOADING PAGE TRANSITION ---
+
+    // 1. Munculkan Loader secara manual (dipanggil saat form submit atau delete)
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // 2. Hilangkan Loader otomatis saat halaman selesai dimuat (Load Event)
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        
+        // Delay dikit (800ms) biar animasinya sempat kelihatan keren (Aesthetic purpose)
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // 3. Deteksi Klik pada Link Navigasi (Biar loader muncul saat pindah halaman)
+    // Script ini akan mencari semua link di halaman ini (termasuk sidebar jika extends layout)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const toggle = this.getAttribute("data-bs-toggle"); // Jangan load kalau cuma buka modal
+                
+                // Jika link valid (bukan #, bukan modal, bukan tab baru)
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !toggle) {
+                    showLoader();
+                }
+            });
+        });
+    });
+
+    function confirmDelete(url) {
+        if(confirm('Apakah Anda yakin ingin menghapus data berita ini?')) {
+            showLoader();
+            window.location.href = url;
+        }
+        return false;
+    }
+
+    // File Upload & Editor Logic
+    const fileInput = document.getElementById('fileInput');
+    if(fileInput){
+        fileInput.addEventListener('change', function(e){
+            const fileName = e.target.files[0]?.name;
+            const display = document.getElementById('fileNameDisplay');
+            if(fileName) {
+                display.textContent = "File terpilih: " + fileName;
+                display.classList.remove('d-none');
+            } else {
+                display.classList.add('d-none');
+            }
+        });
+    }
+
+    if(document.getElementById('editor-konten')) CKEDITOR.replace('editor-konten', { height: 250, removePlugins: 'elementspath', resize_enabled: false });
+    if(document.getElementById('editor-edit')) CKEDITOR.replace('editor-edit', { height: 350, removePlugins: 'elementspath', resize_enabled: false });
+
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            document.getElementById('editId').value = button.getAttribute('data-id');
+            document.getElementById('editTitle').value = button.getAttribute('data-title');
+            document.getElementById('editAuthor').value = button.getAttribute('data-author');
+            
+            const category = button.getAttribute('data-category');
+            if(category) {
+                document.getElementById('editCategory').value = category;
+            }
+            
+            const content = button.querySelector('.content-storage').innerHTML;
+            if (CKEDITOR.instances['editor-edit']) {
+                CKEDITOR.instances['editor-edit'].setData(content);
+            }
+        });
+    }
+
+    const viewModal = document.getElementById('viewModal');
+    if (viewModal) {
+        viewModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            document.getElementById('viewTitle').textContent = button.getAttribute('data-title');
+            document.getElementById('viewAuthor').textContent = button.getAttribute('data-author');
+            
+            const category = button.getAttribute('data-category');
+            document.getElementById('viewCategoryBadge').textContent = category || 'News';
+            
+            document.getElementById('viewContent').innerHTML = button.querySelector('.content-storage').innerHTML;
+
+            const image = button.getAttribute('data-image');
+            const imgArea = document.getElementById('viewImageArea');
+            if (image) {
+                imgArea.innerHTML = `<img src="/static/uploads/${image}" class="w-100 rounded-3" style="max-height: 400px; object-fit: cover;">`;
+            } else {
+                imgArea.innerHTML = '';
+            }
+        });
+    }
+</script>
+
+{% endblock %}

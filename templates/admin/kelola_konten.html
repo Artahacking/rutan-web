@@ -1,0 +1,539 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<script src="https://cdn.ckeditor.com/4.22.1/standard/ckeditor.js"></script>
+
+<style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        --bg-body: #f7f9fc;
+        --border-radius-xl: 24px;
+        --text-dark: #2d3748;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+    }
+
+    /* --- HERO HEADER --- */
+    .header-gradient {
+        background: var(--primary-gradient);
+        padding: 2rem 3rem;
+        color: white;
+        border-radius: var(--border-radius-xl);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -5px rgba(99, 102, 241, 0.4);
+    }
+
+    .hero-pattern {
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    /* --- CARD & TABLE --- */
+    .card-vibrant {
+        border: none;
+        border-radius: var(--border-radius-xl);
+        background: white;
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .table-modern thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.8px;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .table-modern tbody tr:hover td { background-color: #f8f9fe; }
+
+    /* --- UPLOAD ZONE --- */
+    .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        background-color: #f8fafc;
+        padding: 2.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
+    }
+    .upload-zone:hover {
+        border-color: #6366f1;
+        background-color: #eef2ff;
+        transform: translateY(-2px);
+    }
+    .upload-zone input[type="file"] {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .upload-icon-circle {
+        width: 60px; height: 60px;
+        background: #e0e7ff;
+        color: #6366f1;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.5rem;
+    }
+
+    /* --- BUTTONS --- */
+    .btn-gradient {
+        background: var(--primary-gradient);
+        border: none; color: white;
+        padding: 0.7rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s;
+    }
+    .btn-gradient:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4); color: white; }
+
+    .btn-soft {
+        width: 35px; height: 35px;
+        border-radius: 10px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: none; transition: 0.2s;
+    }
+    .btn-soft-primary { background: #e0e7ff; color: #4338ca; }
+    .btn-soft-primary:hover { background: #4338ca; color: white; }
+    
+    .btn-soft-warning { background: #fef3c7; color: #d97706; }
+    .btn-soft-warning:hover { background: #d97706; color: white; }
+    
+    .btn-soft-danger { background: #fee2e2; color: #dc2626; }
+    .btn-soft-danger:hover { background: #dc2626; color: white; }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Form Styles */
+    .form-control-modern {
+        border: 2px solid #f1f5f9;
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+    .form-control-modern:focus {
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+        background: #fff;
+    }
+
+    .cke_notification_warning { display: none !important; }
+</style>
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="header-gradient d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1 text-capitalize"><i class="fas fa-layer-group me-2"></i>Kelola {{ category }}</h2>
+            <p class="mb-0 opacity-75">Manajemen konten website untuk bagian {{ category }}.</p>
+        </div>
+        <nav aria-label="breadcrumb" class="d-none d-md-block">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}" class="text-white text-decoration-none opacity-75">Dashboard</a></li>
+                <li class="breadcrumb-item active text-white fw-bold text-capitalize" aria-current="page">{{ category }}</li>
+            </ol>
+        </nav>
+        <div class="hero-pattern"></div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category_msg, message in messages %}
+          <div class="alert alert-{{ category_msg }} border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center px-4 py-3 bg-white">
+            <div class="rounded-circle p-2 bg-{{ category_msg }} bg-opacity-10 text-{{ category_msg }} me-3">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="fw-medium">{{ message }}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if category != 'pesan' %}
+    <div class="card card-vibrant mb-5">
+        <div class="card-body p-4 p-lg-5">
+            <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 me-3">
+                    <i class="fas fa-plus fa-lg"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Tambah Data Baru</h5>
+                    <small class="text-muted">Lengkapi formulir di bawah ini.</small>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ url_for('admin_add', category=category) }}" enctype="multipart/form-data">
+                <div class="row g-4">
+                    {% if category != 'slider' %}
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Judul / Nama</label>
+                        <input type="text" name="title" class="form-control form-control-modern" placeholder="Masukkan judul..." required>
+                    </div>
+                    {% endif %}
+
+                    {% if category == 'berita' %}
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Penulis</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-user text-muted"></i></span>
+                            <input type="text" name="author" class="form-control form-control-modern border-start-0 ps-0" value="{{ session.get('user', 'Admin') }}">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Kota / Lokasi</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-0"><i class="fas fa-map-marker-alt text-muted"></i></span>
+                            <input type="text" name="city" class="form-control form-control-modern border-start-0 ps-0" placeholder="Contoh: Langkat">
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if category in ['berita', 'layanan', 'profil'] %}
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">Isi Konten / Deskripsi</label>
+                        <textarea name="{% if category == 'layanan' %}description{% else %}content{% endif %}" id="editor-konten" class="form-control"></textarea> 
+                    </div>
+                    {% endif %}
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-secondary small text-uppercase">
+                            {% if category == 'layanan' %} Upload Dokumen (PDF) {% else %} Upload Gambar Utama {% endif %}
+                        </label>
+                        <div class="upload-zone">
+                            <div class="upload-icon-circle">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h6 class="fw-bold text-dark mb-1">Klik atau Tarik File ke Sini</h6>
+                            <p class="text-muted small mb-0" id="fileNameLabel">
+                                Format didukung: {% if category == 'layanan' %}<strong>PDF</strong>{% else %}<strong>JPG, PNG, JPEG</strong>{% endif %}
+                            </p>
+                            <input type="file" name="image" 
+                                   {% if category == 'layanan' %} accept=".pdf" {% else %} accept=".jpg,.jpeg,.png,.gif" {% endif %} required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-5 pt-3 border-top">
+                    <button type="submit" class="btn btn-gradient">
+                        <i class="fas fa-paper-plane me-2"></i> Publikasikan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card card-vibrant">
+        <div class="card-header bg-white py-4 px-4 border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-dark mb-0"><i class="fas fa-list-ul me-2 text-primary"></i> Daftar Data {{ category|capitalize }}</h5>
+            <span class="badge bg-light text-primary border rounded-pill px-3">Total: {{ data|length }}</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-modern mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" width="5%">No</th>
+                            <th width="30%">Judul / Nama</th>
+                            <th>Preview Isi</th>
+                            <th width="10%" class="text-center">Media</th>
+                            <th width="15%" class="text-center pe-4">Opsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in data %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
+                            
+                            <td>
+                                <span class="fw-bold text-dark d-block mb-1 text-truncate" style="max-width: 250px;">{{ item.title or item.name }}</span>
+                                {% if item.created_at %}
+                                <small class="text-muted"><i class="far fa-clock me-1"></i> {{ item.created_at }}</small>
+                                {% endif %}
+                            </td>
+                            
+                            <td>
+                                <span class="text-muted small text-truncate d-block" style="max-width: 350px;">
+                                    {{ (item.content or item.description or item.message or 'Konten media/gambar') | striptags }}
+                                </span>
+                            </td>
+                            
+                            <td class="text-center">
+                                {% if category == 'layanan' and item.file %}
+                                    <a href="{{ url_for('static', filename='uploads/' + item.file) }}" target="_blank" class="btn btn-sm btn-soft-danger rounded-pill px-3 w-100">
+                                        <i class="fas fa-file-pdf me-1"></i> PDF
+                                    </a>
+                                {% elif item.image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + item.image) }}" class="rounded shadow-sm border" style="width: 50px; height: 50px; object-fit: cover;">
+                                {% else %}
+                                    <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            
+                            <td class="text-center pe-4">
+                                <div class="d-flex justify-content-center gap-2">
+                                    <button class="btn btn-soft btn-soft-primary" 
+                                            data-title="{{ item.title or item.name }}"
+                                            data-image="{{ item.image or item.file or '' }}"
+                                            data-type="{{ 'pdf' if category == 'layanan' else 'img' }}"
+                                            data-bs-toggle="modal" data-bs-target="#viewModal"
+                                            title="Lihat Detail">
+                                            <textarea class="d-none content-storage">{{ item.content or item.description or item.message }}</textarea>
+                                            <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    {% if category != 'pesan' %}
+                                    <button class="btn btn-soft btn-soft-warning" 
+                                            data-id="{{ item.id }}"
+                                            data-title="{{ item.title }}"
+                                            data-link="{{ item.link if item.link else '' }}"
+                                            data-bs-toggle="modal" data-bs-target="#editModal"
+                                            title="Edit Data">
+                                            <textarea class="d-none content-storage">{{ item.content or item.description }}</textarea>
+                                            <i class="fas fa-pen"></i>
+                                    </button>
+                                    {% endif %}
+
+                                    <button class="btn btn-soft btn-soft-danger" 
+                                            onclick="openDeleteModal('{{ url_for('admin_delete', category=category, id=item.id) }}')" 
+                                            title="Hapus Data">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                    <div class="bg-light rounded-circle p-3 mb-3">
+                                        <i class="fas fa-folder-open fa-2x text-secondary"></i>
+                                    </div>
+                                    <h6 class="fw-bold text-dark">Data Kosong</h6>
+                                    <p class="small mb-0">Belum ada data yang ditambahkan.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal fade" id="viewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-gradient-primary text-white border-0" style="background: var(--primary-gradient);">
+                <h5 class="modal-title fw-bold" id="viewTitle"></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="card border-0 shadow-sm mb-4 overflow-hidden rounded-4">
+                    <div id="viewImageArea" class="text-center bg-dark"></div>
+                </div>
+                
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark border-bottom pb-3 mb-3 text-uppercase small letter-spacing-1">Isi Konten</h6>
+                        <div id="viewContent" class="text-muted lh-lg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-white border-bottom p-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-edit text-warning me-2"></i>Edit Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="{{ url_for('admin_update', category=category) }}" enctype="multipart/form-data">
+                    <input type="hidden" name="id" id="editId">
+                    
+                    {% if category != 'slider' %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Judul / Nama</label>
+                        <input type="text" name="title" id="editTitle" class="form-control form-control-modern" required>
+                    </div>
+                    {% endif %}
+
+                    {% if category in ['berita', 'layanan', 'profil'] %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-secondary">Isi Konten</label>
+                        <textarea name="{% if category == 'layanan' %}description{% else %}content{% endif %}" id="editor-edit" class="form-control"></textarea>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase text-dark">Update File</label>
+                        <div class="p-3 border rounded-3 bg-light">
+                            <input type="file" name="image" class="form-control" 
+                                   {% if category == 'layanan' %} accept=".pdf" 
+                                   {% else %} accept=".jpg,.jpeg,.png,.gif" {% endif %}>
+                            <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i> Kosongkan jika tidak ingin mengubah file/gambar.</small>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-gradient rounded-pill px-4 fw-bold">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Data?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus data ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // FIX CKEDITOR SECURITY WARNING
+    CKEDITOR.config.versionCheck = false;
+
+    // --- 1. JS untuk mempercantik Input File ---
+    const fileInput = document.querySelector('input[type="file"]');
+    if(fileInput){
+        fileInput.addEventListener('change', function(e){
+            const fileName = e.target.files[0]?.name;
+            const label = document.getElementById('fileNameLabel');
+            if(fileName) {
+                label.innerHTML = `<span class="text-primary fw-bold"><i class="fas fa-check-circle me-1"></i> ${fileName}</span>`;
+            }
+        });
+    }
+
+    // --- 2. DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+
+    // --- 3. CKEDITOR INIT ---
+    if(document.getElementById('editor-konten')) {
+        CKEDITOR.replace('editor-konten', { height: 250, removePlugins: 'elementspath', resize_enabled: false });
+    }
+    if(document.getElementById('editor-edit')) {
+        CKEDITOR.replace('editor-edit', { height: 250, removePlugins: 'elementspath', resize_enabled: false });
+    }
+
+    // --- 4. MODAL DATA POPULATION ---
+    
+    // Lihat Modal
+    const viewModal = document.getElementById('viewModal');
+    if (viewModal) {
+        viewModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const title = button.getAttribute('data-title');
+            const file = button.getAttribute('data-image');
+            const type = button.getAttribute('data-type');
+            const content = button.querySelector('.content-storage').value; 
+
+            document.getElementById('viewTitle').innerHTML = title;
+            document.getElementById('viewContent').innerHTML = content; 
+
+            const imgArea = document.getElementById('viewImageArea');
+            imgArea.innerHTML = ''; 
+
+            if (file) {
+                if (type === 'pdf') {
+                    imgArea.innerHTML = `<div class="p-5"><a href="/static/uploads/${file}" target="_blank" class="btn btn-outline-light border-2 rounded-pill px-4 py-2"><i class="fas fa-file-pdf me-2"></i> Buka Dokumen PDF</a></div>`;
+                } else {
+                    imgArea.innerHTML = `<img src="/static/uploads/${file}" class="img-fluid" style="max-height: 400px; width: auto;">`;
+                }
+            } else {
+                imgArea.innerHTML = '<div class="p-4 text-white-50 small fst-italic">Tidak ada media lampiran</div>';
+            }
+        });
+    }
+
+    // Edit Modal
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const title = button.getAttribute('data-title');
+            const content = button.querySelector('.content-storage').value;
+
+            document.getElementById('editId').value = id;
+            if(document.getElementById('editTitle')) document.getElementById('editTitle').value = title;
+            
+            if (CKEDITOR.instances['editor-edit']) {
+                CKEDITOR.instances['editor-edit'].setData(content);
+            }
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,510 @@
+{% extends "admin/layout.html" %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        /* Vibrant Purple Palette */
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+        --bg-body: #f7f9fc;
+        --border-radius-xl: 24px;
+        --text-dark: #2d3748;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #764ba2; 
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- HERO SECTION --- */
+    .page-header {
+        background: white;
+        border-radius: var(--border-radius-xl);
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0; width: 6px;
+        background: var(--primary-gradient);
+    }
+
+    /* --- ADMIN CARD --- */
+    .card-profile {
+        border: none;
+        border-radius: var(--border-radius-xl);
+        background: white;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .card-profile:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+    }
+
+    .card-cover {
+        height: 110px;
+        background: var(--primary-gradient);
+        position: relative;
+    }
+    
+    .card-cover-pattern {
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background-image: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.1) 0%, transparent 20%);
+    }
+
+    .avatar-wrapper {
+        margin-top: -60px;
+        position: relative;
+        display: inline-block;
+    }
+
+    .profile-img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 5px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        object-fit: cover;
+        background: white;
+    }
+
+    .status-badge {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        background: #22c55e;
+        border: 4px solid white;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    /* --- BUTTONS --- */
+    .btn-action-group {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 8px;
+        display: inline-flex;
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-edit { background: #e0e7ff; color: #4338ca; }
+    .btn-edit:hover { background: #4338ca; color: white; }
+
+    .btn-delete { background: #fee2e2; color: #dc2626; }
+    .btn-delete:hover { background: #dc2626; color: white; }
+
+    .btn-add-new {
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+        transition: transform 0.2s;
+    }
+    .btn-add-new:hover { transform: scale(1.05); color: white; }
+
+    /* --- FORM ELEMENTS --- */
+    .form-control-modern {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 10px 15px;
+        transition: 0.3s;
+    }
+    .form-control-modern:focus {
+        background: white;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    /* Animation Pulse */
+    .pulse-ring {
+        position: absolute;
+        top: 0; left: 0; bottom: 0; right: 0;
+        border-radius: 50%;
+        border: 2px solid #22c55e;
+        animation: pulsate 2s infinite;
+    }
+    @keyframes pulsate {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1.5); opacity: 0; }
+    }
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center page-header">
+        <div class="mb-3 mb-md-0">
+            <h2 class="fw-bold text-dark mb-1"><i class="fas fa-users-cog me-2 text-primary"></i>Tim Administrator</h2>
+            <p class="text-muted mb-0">Kelola akses dan profil pengguna dashboard.</p>
+        </div>
+        <button class="btn-add-new" data-bs-toggle="modal" data-bs-target="#addAdminModal">
+            <i class="fas fa-plus me-2"></i>Tambah Admin
+        </button>
+    </div>
+
+    <div class="row g-4">
+        {% for user in data %}
+        <div class="col-md-6 col-lg-4 col-xl-3">
+            <div class="card card-profile text-center">
+                
+                <div class="card-cover">
+                    <div class="card-cover-pattern"></div>
+                </div>
+
+                <div class="card-body pt-0">
+                    <div class="avatar-wrapper">
+                        {% if user.image %}
+                            <img src="{{ url_for('static', filename='uploads/' + user.image) }}" class="profile-img">
+                        {% else %}
+                            <div class="profile-img d-flex align-items-center justify-content-center bg-light text-secondary">
+                                <i class="fas fa-user fa-3x"></i>
+                            </div>
+                        {% endif %}
+                        
+                        {% if session['user'] == user.username %}
+                            <div class="status-badge">
+                                <div class="pulse-ring"></div>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <h5 class="fw-bold text-dark mt-3 mb-1">{{ user.username }}</h5>
+                    <span class="badge bg-light text-secondary border rounded-pill px-3 py-2 fw-normal mb-4">
+                        <i class="fas fa-shield-alt me-1"></i> Administrator
+                    </span>
+
+                    <div class="d-block">
+                        <div class="btn-action-group">
+                            <button class="btn-icon btn-edit" 
+                                    data-bs-toggle="modal" data-bs-target="#editUserModal"
+                                    data-id="{{ user.id }}"
+                                    data-username="{{ user.username }}"
+                                    data-image="{{ user.image or '' }}"
+                                    title="Edit Profil">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            
+                            {% if session['user'] != user.username %}
+                            <button class="btn-icon btn-delete" 
+                                    onclick="openDeleteModal('{{ url_for('admin_users_delete', id=user.id) }}')" 
+                                    title="Hapus Admin">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% else %}
+                            <div class="btn-icon bg-success bg-opacity-10 text-success cursor-default" title="Sedang Login">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="opacity-50">
+                <i class="fas fa-users-slash fa-4x text-muted mb-3"></i>
+                <h5 class="text-muted fw-normal">Belum ada data administrator.</h5>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<div class="modal fade" id="addAdminModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-white border-bottom p-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-user-plus me-2 text-primary"></i>Tambah Admin Baru</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('admin_users_add') }}" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+                        <input type="text" name="username" class="form-control form-control-modern" placeholder="Masukkan username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Password</label>
+                        <input type="password" name="password" class="form-control form-control-modern" placeholder="Masukkan password kuat" required>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Foto Profil</label>
+                        <input type="file" name="image" class="form-control form-control-modern" accept=".jpg,.jpeg,.png">
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold py-2 rounded-pill shadow-sm" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border: none;">
+                            Simpan Admin
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+            <div class="modal-header bg-white border-bottom p-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="fas fa-user-edit me-2 text-warning"></i>Edit Profil Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form action="{{ url_for('admin_users_update') }}" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+                    <input type="hidden" name="id" id="editUserId">
+                    
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <div id="currentPhotoArea" class="rounded-circle overflow-hidden border border-3 border-light shadow-sm" style="width: 100px; height: 100px;">
+                                </div>
+                            <label for="editImageInput" class="position-absolute bottom-0 end-0 bg-white text-dark rounded-circle shadow p-2 cursor-pointer border" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-camera small"></i>
+                            </label>
+                        </div>
+                        <input type="file" name="image" id="editImageInput" class="d-none" accept=".jpg,.jpeg,.png" onchange="previewImage(this)">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Username</label>
+                        <input type="text" name="username" id="editUsername" class="form-control form-control-modern" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label text-secondary small fw-bold text-uppercase">Password Baru</label>
+                        <input type="password" name="password" class="form-control form-control-modern" placeholder="Kosongkan jika tidak diganti">
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success fw-bold py-2 rounded-pill shadow-sm">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Admin?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus administrator ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="showLoader()">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const onclick = this.getAttribute("onclick"); 
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                // Kondisi: href valid, bukan anchor, bukan tab baru, bukan modal, bukan fungsi JS custom
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !onclick && !toggle) {
+                    showLoader();
+                }
+            });
+        });
+    });
+
+    // --- 2. DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+
+    // --- 3. LOGIC MODAL EDIT ---
+    const editUserModal = document.getElementById('editUserModal');
+    if (editUserModal) {
+        editUserModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const id = button.getAttribute('data-id');
+            const username = button.getAttribute('data-username');
+            const image = button.getAttribute('data-image');
+
+            document.getElementById('editUserId').value = id;
+            document.getElementById('editUsername').value = username;
+
+            const photoArea = document.getElementById('currentPhotoArea');
+            if(image) {
+                photoArea.innerHTML = `<img src="/static/uploads/${image}" class="w-100 h-100 object-fit-cover">`;
+            } else {
+                photoArea.innerHTML = `<div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted"><i class="fas fa-user fa-3x"></i></div>`;
+            }
+        });
+    }
+
+    // Logic Preview Image saat Upload di Modal Edit
+    function previewImage(input) {
+        const photoArea = document.getElementById('currentPhotoArea');
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoArea.innerHTML = `<img src="${e.target.result}" class="w-100 h-100 object-fit-cover">`;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+
+{% endblock %}

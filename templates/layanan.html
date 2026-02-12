@@ -1,0 +1,353 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+<style>
+    /* === MODERN CSS UPGRADES === */
+    :root {
+        --primary-color: #0d6efd;
+        --secondary-color: #6c757d;
+        --accent-color: #eef2f7;
+    }
+
+    body {
+        background-color: #f8f9fa; /* Background halaman sedikit abu muda agar kartu pop-up */
+    }
+
+    /* Kartu dengan bayangan lembut dan sudut membulat */
+    .card-modern {
+        border: none;
+        border-radius: 15px;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        overflow: hidden;
+    }
+
+    .card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    }
+
+    /* Header Step Number */
+    .step-badge {
+        background-color: var(--primary-color);
+        color: white;
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        font-weight: bold;
+        margin-right: 10px;
+        box-shadow: 0 4px 6px rgba(13, 110, 253, 0.3);
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Styling Konten Layanan */
+    .service-content {
+        color: #555;
+        line-height: 1.7;
+    }
+    .service-content ul { margin-left: 1rem; }
+
+    /* Tombol Download Modern */
+    .btn-download-modern {
+        background-color: #fff;
+        color: #dc3545;
+        border: 2px solid #dc3545;
+        border-radius: 50px;
+        padding: 8px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    .btn-download-modern:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    /* Form Floating & Input Styling */
+    .form-control:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    }
+    
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 2rem;
+        text-align: center;
+        background-color: #fcfcfc;
+        transition: border-color 0.3s;
+    }
+    .upload-area:hover {
+        border-color: var(--primary-color);
+        background-color: #fff;
+    }
+
+    /* Image Thumbnail Style */
+    .img-thumbnail-modern {
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.3s;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .img-thumbnail-modern:hover {
+        transform: scale(1.03);
+    }
+
+    /* Modal Styling */
+    .btn-close-force {
+        background-color: #dc3545;
+        opacity: 1;
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e");
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: 1rem;
+        border: 2px solid white;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        z-index: 1060; 
+        transition: transform 0.3s ease;
+    }
+    .btn-close-force:hover { transform: scale(1.1) rotate(90deg); }
+    #modalManual { z-index: 1055 !important; }
+    #backdropManual { z-index: 1050 !important; background-color: rgba(0, 0, 0, 0.8); }
+</style>
+
+<div class="container py-5">
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="row mb-4">
+            <div class="col-12">
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0" role="alert">
+                    <i class="bi bi-info-circle-fill me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+            </div>
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="text-center mb-5">
+        <h2 class="fw-bold display-6 text-dark">Layanan Integrasi & Upload Berkas</h2>
+        <p class="text-muted">Cuti Bersyarat (CB), Pembebasan Bersyarat (PB), CMB & Asimilasi</p>
+        <div class="d-flex justify-content-center mt-3">
+            <div style="width: 80px; height: 4px; background: linear-gradient(90deg, #0d6efd, #0dcaf0); border-radius: 2px;"></div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        
+        <div class="col-lg-7">
+            
+            <div class="card card-modern mb-4">
+                <div class="card-body p-4">
+                    <h4 class="section-title"><span class="step-badge">1</span> Panduan Pengisian</h4>
+                    
+                    <div class="bg-light p-3 rounded-3 border-start border-4 border-warning mb-3">
+                        <div class="d-flex">
+                            <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark">Poin Penting:</h6>
+                                <ul class="mb-0 small text-muted ps-3">
+                                    <li><strong>Yang bertanda tangan:</strong> Wajib KELUARGA/PENJAMIN.</li>
+                                    <li><strong>Penjamin dari:</strong> Diisi data WARGA BINAAN (Napi).</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row align-items-center">
+                        <div class="col-md-7">
+                            <p class="text-muted small">Pastikan data yang diisi sesuai dengan KTP dan Kartu Keluarga. Kesalahan penulisan dapat menghambat proses verifikasi.</p>
+                            <button class="btn btn-outline-primary btn-sm rounded-pill mt-2" onclick="bukaModalPaksa()">
+                                <i class="bi bi-zoom-in"></i> Lihat Contoh Full
+                            </button>
+                        </div>
+                        <div class="col-md-5 text-center mt-3 mt-md-0">
+                            <div class="position-relative d-inline-block" onclick="bukaModalPaksa()">
+                                <img src="{{ url_for('static', filename='image.png') }}" 
+                                     alt="Contoh Surat" 
+                                     class="img-fluid img-thumbnail-modern"
+                                     style="height: 150px; object-fit: cover;">
+                                <div class="position-absolute top-50 start-50 translate-middle badge bg-dark bg-opacity-75 rounded-pill">
+                                    Klik
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card card-modern">
+                <div class="card-body p-4">
+                    <h4 class="section-title"><span class="step-badge">2</span> Syarat & Dokumen</h4>
+                    
+                    {% for serv in services %}
+                    <div class="border-bottom pb-4 mb-4 last-no-border">
+                        <div class="d-flex align-items-start">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="bi bi-file-earmark-text-fill fs-3 text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <h5 class="fw-bold text-dark">{{ serv.title }}</h5>
+                                <div class="service-content small text-secondary">
+                                    {{ serv.description | safe }}
+                                </div>
+                                
+                                {% if serv.file %}
+                                <div class="mt-3">
+                                    <a href="{{ url_for('static', filename='uploads/' + serv.file) }}" target="_blank" class="btn-download-modern text-decoration-none d-inline-flex align-items-center">
+                                        <i class="bi bi-cloud-arrow-down-fill me-2"></i> Download Surat Jaminan
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <p>Belum ada informasi layanan.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-5">
+            <div class="sticky-top" style="top: 20px; z-index: 100;">
+                
+                <div class="card card-modern border-top border-4 border-primary">
+                    <div class="card-body p-4">
+                        <h4 class="section-title"><span class="step-badge">3</span> Kirim Berkas</h4>
+                        <p class="text-muted small mb-4">Sudah mengisi surat jaminan? Silakan upload scan/foto dokumen tersebut di sini untuk diproses.</p>
+
+                        <form action="{{ url_for('upload_surat_jaminan') }}" method="POST" enctype="multipart/form-data">
+                            
+                            <div class="form-floating mb-3">
+                                <input type="text" name="nama" class="form-control" id="floatingNama" placeholder="Nama Penjamin" required>
+                                <label for="floatingNama">Nama Pengirim (Penjamin)</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="number" name="nik" class="form-control" id="floatingNik" placeholder="NIK KTP" required>
+                                <label for="floatingNik">NIK KTP (16 Digit)</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="text" name="no_wa" class="form-control" id="floatingWa" placeholder="08xxx" required>
+                                <label for="floatingWa">Nomor WhatsApp</label>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-bold small text-muted mb-2">Upload Berkas (PDF/JPG/PNG)</label>
+                                <div class="upload-area">
+                                    <input type="file" name="file_surat" class="form-control" id="fileInput" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required style="display: none;">
+                                    <label for="fileInput" class="w-100 h-100" style="cursor: pointer;">
+                                        <i class="bi bi-cloud-upload display-4 text-primary d-block mb-2"></i>
+                                        <span class="text-dark fw-bold">Klik untuk pilih file</span><br>
+                                        <span class="text-muted small" id="fileName">atau drag & drop disini</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold rounded-pill shadow-sm">
+                                <i class="bi bi-send-fill me-2"></i> KIRIM SEKARANG
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <p class="small text-muted mb-1">Butuh bantuan?</p>
+                    <a href="https://wa.me/6281234567890" class="text-decoration-none fw-bold text-success">
+                        <i class="bi bi-whatsapp"></i> Hubungi Admin Pelayanan
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalManual" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="background-color: transparent; border: none; box-shadow: none;">
+                
+                <div class="modal-header border-bottom-0 p-0 mb-2 justify-content-end">
+                    <button type="button" class="btn-close-force shadow" onclick="tutupModalPaksa()" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body text-center p-0">
+                    <img src="{{ url_for('static', filename='image.png') }}" 
+                         class="img-fluid rounded shadow-lg" 
+                         style="width: 100%; max-width: 900px; cursor: pointer;" 
+                         alt="Contoh Surat Jaminan Full"
+                         onclick="tutupModalPaksa()">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Script untuk menampilkan nama file yang dipilih
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        var fileName = e.target.files[0].name;
+        document.getElementById('fileName').innerText = "File terpilih: " + fileName;
+        document.getElementById('fileName').classList.add('text-primary', 'fw-bold');
+    });
+
+    // Fungsi Modal Manual (Sama seperti sebelumnya, working perfect)
+    function bukaModalPaksa() {
+        var modal = document.getElementById('modalManual');
+        modal.style.display = 'block';
+        setTimeout(function() { modal.classList.add('show'); }, 10);
+        modal.setAttribute('aria-modal', 'true');
+        modal.removeAttribute('aria-hidden');
+        
+        var backdrop = document.createElement('div');
+        backdrop.className = 'modal-backdrop fade show';
+        backdrop.id = 'backdropManual';
+        backdrop.onclick = function() { tutupModalPaksa(); }; // Klik luar tutup
+        
+        document.body.appendChild(backdrop);
+        document.body.classList.add('modal-open');
+    }
+
+    function tutupModalPaksa() {
+        var modal = document.getElementById('modalManual');
+        var backdrop = document.getElementById('backdropManual');
+        
+        modal.classList.remove('show');
+        setTimeout(function() { modal.style.display = 'none'; }, 150);
+        modal.removeAttribute('aria-modal');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        if (backdrop) {
+            backdrop.classList.remove('show');
+            setTimeout(function() {
+                if(backdrop.parentNode) { backdrop.parentNode.removeChild(backdrop); }
+            }, 150);
+        }
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = ''; 
+    }
+</script>
+{% endblock %}

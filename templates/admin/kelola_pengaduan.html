@@ -1,0 +1,455 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+
+<style>
+    :root {
+        --gradient-header: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        --card-radius: 20px;
+        --bg-soft: #f1f5f9;
+    }
+
+    body {
+        background-color: var(--bg-soft);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #6366f1; /* Warna Ungu Header */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--gradient-header);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- HERO HEADER --- */
+    .hero-header {
+        background: var(--gradient-header);
+        border-radius: var(--card-radius);
+        padding: 2.5rem 3rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 30px -10px rgba(99, 102, 241, 0.4);
+        margin-bottom: 2.5rem;
+    }
+
+    .hero-pattern {
+        position: absolute;
+        top: -50%; right: -10%;
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .breadcrumb-item a { color: rgba(255,255,255,0.8); text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.5); }
+    .breadcrumb-item.active { color: white; font-weight: 600; }
+
+    /* --- TICKET CARD --- */
+    .card-ticket {
+        border: none;
+        border-radius: 20px;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        border-top: 5px solid transparent;
+    }
+
+    /* Border Accent based on Type */
+    .type-pengaduan { border-top-color: #ef4444; } /* Merah untuk Pengaduan */
+    .type-informasi { border-top-color: #0ea5e9; } /* Biru untuk Informasi */
+
+    .card-ticket:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.08);
+    }
+
+    .ticket-header {
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .avatar-char {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.25rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    
+    .bg-gradient-red { background: linear-gradient(135deg, #f87171, #ef4444); }
+    .bg-gradient-blue { background: linear-gradient(135deg, #38bdf8, #0ea5e9); }
+
+    .ticket-body { padding: 1.5rem; }
+
+    /* --- INFO FIELDS --- */
+    .info-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        font-weight: 700;
+        margin-bottom: 4px;
+        display: block;
+    }
+    
+    .info-value {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* --- MESSAGE BUBBLE --- */
+    .message-bubble {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.25rem;
+        margin-top: 1.5rem;
+        position: relative;
+        border: 1px solid #e2e8f0;
+    }
+    
+    .message-bubble::before {
+        content: '';
+        position: absolute;
+        top: -8px; left: 24px;
+        width: 16px; height: 16px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        border-left: 1px solid #e2e8f0;
+        transform: rotate(45deg);
+    }
+
+    .message-content {
+        color: #475569;
+        line-height: 1.6;
+        font-size: 0.95rem;
+        font-style: italic;
+    }
+
+    /* --- ACTION FOOTER --- */
+    .ticket-footer {
+        padding: 1rem 1.5rem;
+        background: #fff;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-wa {
+        background: #dcfce7;
+        color: #166534;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        display: inline-flex; align-items: center; gap: 6px;
+        text-decoration: none;
+    }
+    .btn-wa:hover { background: #22c55e; color: white; box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3); }
+
+    .btn-del {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid #fee2e2;
+        color: #ef4444;
+        background: white;
+        display: flex; align-items: center; justify-content: center;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+    .btn-del:hover { background: #ef4444; color: white; border-color: #ef4444; }
+
+    /* --- BADGES --- */
+    .badge-modern { padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    .badge-ticket-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .badge-ticket-info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="hero-header d-flex justify-content-between align-items-center">
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-1"><i class="fas fa-headset me-2"></i> Pusat Aspirasi & Informasi</h2>
+            <p class="mb-0 opacity-75">Kelola pesan masuk, pengaduan, dan permintaan informasi masyarakat.</p>
+        </div>
+        <div class="position-relative z-1 d-none d-md-block">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Pengaduan</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="hero-pattern"></div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} border-0 shadow-sm rounded-3 mb-4 d-flex align-items-center bg-white">
+            <div class="rounded-circle p-2 bg-{{ category }} bg-opacity-10 text-{{ category }} me-3">
+                <i class="fas fa-{{ 'check' if category=='success' else 'info' }}"></i>
+            </div>
+            <div class="text-dark fw-medium">{{ message }}</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="row g-4 pb-5">
+        {% for row in data %}
+        <div class="col-xl-6 col-lg-12">
+            <div class="card-ticket {% if row.jenis_layanan == 'Pengaduan' %}type-pengaduan{% else %}type-informasi{% endif %}">
+                
+                <div class="ticket-header">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="avatar-char {% if row.jenis_layanan == 'Pengaduan' %}bg-gradient-red{% else %}bg-gradient-blue{% endif %}">
+                            {{ row.nama_pelapor[0] | upper }}
+                        </div>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">{{ row.nama_pelapor }}</h5>
+                            <small class="text-muted"><i class="far fa-clock me-1"></i> {{ row.created_at }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if row.jenis_layanan == 'Pengaduan' %}
+                        <span class="badge-modern badge-ticket-danger">
+                            <i class="fas fa-exclamation-triangle me-1"></i> Pengaduan
+                        </span>
+                    {% else %}
+                        <span class="badge-modern badge-ticket-info">
+                            <i class="fas fa-info-circle me-1"></i> Informasi
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="ticket-body">
+                    <div class="row mb-4">
+                        <div class="col-6">
+                            <span class="info-label">Identitas (NIK)</span>
+                            <div class="info-value">
+                                <i class="far fa-id-card text-secondary"></i> {{ row.nik }}
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <span class="info-label">Gender</span>
+                            <div class="info-value">
+                                {% if row.jenis_kelamin == 'Laki-laki' %}
+                                    <i class="fas fa-mars text-primary"></i> Laki-laki
+                                {% else %}
+                                    <i class="fas fa-venus text-danger"></i> Perempuan
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <span class="info-label">Alamat Lengkap</span>
+                        <div class="info-value align-items-start">
+                            <i class="fas fa-map-marker-alt text-danger mt-1"></i> 
+                            <span class="text-truncate" style="max-width: 90%;">{{ row.alamat }}</span>
+                        </div>
+                    </div>
+
+                    <div class="message-bubble">
+                        <span class="info-label text-primary mb-1">Isi Pesan:</span>
+                        <div class="message-content">
+                            "{{ row.deskripsi }}"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ticket-footer">
+                    {% if row.no_wa %}
+                    <a href="https://wa.me/{{ row.no_wa }}" target="_blank" class="btn-wa">
+                        <i class="fab fa-whatsapp fs-5"></i> Balas via WhatsApp
+                    </a>
+                    {% else %}
+                    <span class="text-muted small fst-italic">No WA tidak tersedia</span>
+                    {% endif %}
+
+                    <button type="button" class="btn-del border-0" 
+                            onclick="openDeleteModal('{{ url_for('admin_pengaduan_delete', id=row.id) }}')" 
+                            title="Hapus Pesan">
+                        <i class="far fa-trash-alt"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div class="d-inline-block p-4 rounded-circle bg-light mb-3">
+                <i class="fas fa-inbox fa-3x text-secondary opacity-50"></i>
+            </div>
+            <h5 class="fw-bold text-secondary">Belum Ada Pesan Masuk</h5>
+            <p class="text-muted">Kotak masuk aspirasi dan pengaduan saat ini kosong.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Pesan?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus pesan aspirasi ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="showLoader()">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const onclick = this.getAttribute("onclick"); // Avoid double triggering
+                
+                // Kondisi: href valid, bukan anchor, bukan tab baru, dan bukan button delete
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !onclick) {
+                    showLoader();
+                }
+            });
+        });
+    });
+
+    // --- 2. NEW DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="section-title text-center">Hubungi Kami</h2>
+    
+    <div class="map-container mb-5 shadow" style="width: 100%; height: 600px;">
+        <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3979.992861484116!2d98.28593837397155!3d4.021857295951886!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30373d684f6a8349%3A0x2729b5b7c403dc86!2sRutan%20Kelas%20IIB%20Pangkalan%20Berandan!5e0!3m2!1sid!2sid!4v1766813833477!5m2!1sid!2sid"
+            width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card bg-primary text-white p-4 h-100">
+                <h4>Informasi Kontak</h4>
+                <p><i class="fas fa-map-marker-alt me-2"></i> Jl. Stasiun No.9, Brandan Tim. Baru, Kec. Babalan, Kabupaten Langkat, Sumatera Utara 20857</p>
+                <p><i class="fas fa-phone me-2"></i> 0411-868667</p>
+                <p><i class="fas fa-envelope me-2"></i> info@rutanmakassar.com</p>
+            </div>
+        </div>
+        <div class="col-md-7">
+            <div class="card p-4 shadow-sm">
+                <h4>Kirim Pesan</h4>
+                <p class="text-muted small">Kami akan membalas pesan Anda melalui WhatsApp.</p>
+                
+                <form method="POST" action="{{ url_for('kontak') }}">
+                    <div class="mb-3">
+                        <label>Nama Lengkap</label>
+                        <input type="text" name="name" class="form-control" required placeholder="Masukkan Nama Anda">
+                    </div>
+                    <div class="mb-3">
+                        <label>No WhatsApp / HP</label>
+                        <input type="number" name="phone" class="form-control" required placeholder="Contoh: 081234567890">
+                        <small class="text-muted">Pastikan nomor aktif di WhatsApp.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label>Pesan</label>
+                        <textarea name="message" class="form-control" rows="4" required placeholder="Tulis pesan Anda disini..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100"><i class="fab fa-whatsapp me-2"></i>Kirim Pesan</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

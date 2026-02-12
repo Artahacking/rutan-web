@@ -1,0 +1,474 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+
+<style>
+    :root {
+        /* Palette Kunjungan (Blue & Cyan) */
+        --visit-gradient: linear-gradient(135deg, #0ea5e9 0%, #22d3ee 100%);
+        --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+        --border-radius-xl: 24px;
+        --glass-white: rgba(255, 255, 255, 0.95);
+        --text-dark: #1e293b;
+        --bg-soft: #f1f5f9;
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #0ea5e9; 
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--visit-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- HERO SECTION --- */
+    .hero-header {
+        background: var(--visit-gradient);
+        border-radius: var(--border-radius-xl);
+        padding: 2.5rem 3rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px rgba(14, 165, 233, 0.3);
+        margin-bottom: 2.5rem;
+    }
+
+    .hero-pattern {
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background-image: radial-gradient(circle at 10% 20%, rgba(255,255,255,0.2) 0%, transparent 20%);
+        pointer-events: none;
+    }
+
+    .hero-icon {
+        position: absolute;
+        right: -20px;
+        bottom: -30px;
+        font-size: 10rem;
+        opacity: 0.15;
+        transform: rotate(-15deg);
+        pointer-events: none;
+    }
+
+    .breadcrumb-item a { color: rgba(255,255,255,0.9); text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.5); }
+    .breadcrumb-item.active { color: white; font-weight: 600; }
+
+    /* --- CARD & TABLE --- */
+    .card-modern {
+        border: none;
+        border-radius: var(--border-radius-xl);
+        background: white;
+        box-shadow: var(--card-shadow);
+        overflow: hidden;
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .table-modern thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.8px;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .table-modern tbody tr:hover td { background-color: #f0f9ff; }
+
+    /* --- AVATAR & INFO --- */
+    .avatar-initial {
+        width: 45px; height: 45px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.1rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .bg-av-1 { background: #6366f1; } .bg-av-2 { background: #ec4899; } .bg-av-3 { background: #10b981; } .bg-av-4 { background: #f59e0b; } .bg-av-5 { background: #0ea5e9; }
+
+    .user-meta { display: flex; flex-direction: column; }
+    .user-name { font-weight: 700; color: #1e293b; font-size: 0.95rem; }
+    .user-detail { font-size: 0.8rem; color: #94a3b8; display: flex; align-items: center; gap: 5px; margin-top: 2px; }
+
+    .wbp-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 8px 12px;
+        border-left: 3px solid #0ea5e9;
+    }
+
+    /* --- BADGES --- */
+    .badge-modern { padding: 6px 12px; border-radius: 30px; font-weight: 600; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 6px; }
+    .bg-soft-warning { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
+    .bg-soft-success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+    .bg-soft-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fca5a5; }
+
+    /* --- SEARCH INPUT --- */
+    .search-modern {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 50px;
+        padding: 0.5rem 1.2rem;
+        padding-left: 2.5rem;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        width: 250px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' class='bi bi-search' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+    }
+    .search-modern:focus { border-color: #0ea5e9; background-color: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); outline: none; }
+
+    /* --- BUTTONS --- */
+    .btn-soft {
+        width: 32px; height: 32px;
+        border-radius: 8px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: none; transition: 0.2s;
+    }
+    .btn-soft-edit { background: #e0f2fe; color: #0284c7; }
+    .btn-soft-edit:hover { background: #0284c7; color: white; }
+    .btn-soft-del { background: #fee2e2; color: #dc2626; }
+    .btn-soft-del:hover { background: #dc2626; color: white; }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="hero-header d-flex justify-content-between align-items-center">
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-1"><i class="fas fa-users me-2"></i>Data Kunjungan Online</h2>
+            <p class="mb-0 opacity-90">Kelola antrean dan persetujuan kunjungan warga binaan.</p>
+        </div>
+        <div class="position-relative z-1 d-none d-md-block">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Kunjungan</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="hero-pattern"></div>
+        <i class="fas fa-user-friends hero-icon"></i>
+    </div>
+
+    <div class="card card-modern">
+        <div class="card-header-flex">
+            <div>
+                <h5 class="fw-bold text-dark mb-0">Daftar Permohonan</h5>
+                <small class="text-muted">Total: <b>{{ data|length }}</b> Antrean</small>
+            </div>
+            <div>
+                <input type="text" class="search-modern" placeholder="Cari nama pengunjung...">
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-modern mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="ps-4" width="5%">No</th>
+                            <th width="25%">Profil Pengunjung</th>
+                            <th width="20%">Kontak & Alamat</th>
+                            <th width="20%">Tujuan (WBP)</th>
+                            <th width="15%" class="text-center">Jadwal & Status</th>
+                            <th width="10%" class="text-center pe-4">Opsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if data %}
+                            {% for row in data %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-muted">{{ loop.index }}</td>
+                                
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-initial me-3 bg-av-{{ (loop.index % 5) + 1 }}">
+                                            {{ row.nama_pengunjung[0] | upper }}
+                                        </div>
+                                        <div class="user-meta">
+                                            <span class="user-name">{{ row.nama_pengunjung }}</span>
+                                            <div class="user-detail">
+                                                <i class="fas fa-user-clock text-secondary" style="font-size: 0.7rem;"></i> 
+                                                {{ row.umur }} Thn • {{ row.jenis_kelamin }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {% if row.no_wa %}
+                                    <a href="https://wa.me/{{ row.no_wa }}" target="_blank" class="badge bg-white border text-success text-decoration-none mb-1 px-2 py-1">
+                                        <i class="fab fa-whatsapp me-1"></i> {{ row.no_wa }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted small d-block">-</span>
+                                    {% endif %}
+                                    <div class="text-muted small text-truncate" style="max-width: 180px;">
+                                        <i class="fas fa-map-marker-alt me-1 text-danger opacity-50"></i> {{ row.alamat }}
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="wbp-box">
+                                        <div class="fw-bold text-dark small mb-1">{{ row.nama_wbp }}</div>
+                                        <div class="text-muted extra-small" style="font-size: 0.75rem;">
+                                            <i class="fas fa-gavel me-1"></i> {{ row.perkara or '-' }}
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="fw-bold text-dark small">{{ row.created_at.strftime('%d-%m-%Y') }}</div>
+                                    <div class="text-muted extra-small mb-2">{{ row.created_at.strftime('%H:%M') }} WIB</div>
+                                    
+                                    {% if row.status == 'Disetujui' %}
+                                        <span class="badge-modern bg-soft-success"><i class="fas fa-check-circle"></i> Disetujui</span>
+                                    {% elif row.status == 'Ditolak' %}
+                                        <span class="badge-modern bg-soft-danger"><i class="fas fa-times-circle"></i> Ditolak</span>
+                                    {% else %}
+                                        <span class="badge-modern bg-soft-warning"><i class="fas fa-clock"></i> Pending</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-center pe-4">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button type="button" class="btn btn-soft-edit btn-soft" 
+                                                data-bs-toggle="modal" data-bs-target="#modalStatus{{ row.id }}" 
+                                                title="Ubah Status">
+                                            <i class="fas fa-pen"></i>
+                                        </button>
+                                        
+                                        <button type="button" 
+                                           class="btn btn-soft-del btn-soft" 
+                                           onclick="openDeleteModal('{{ url_for('admin_kunjungan_delete', id=row.id) }}')" 
+                                           title="Hapus">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="modalStatus{{ row.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                    <div class="modal-content border-0 shadow rounded-4">
+                                        <div class="modal-header border-bottom-0 pb-0">
+                                            <h6 class="modal-title fw-bold">Update Status</h6>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('admin_kunjungan_update') }}" method="POST" onsubmit="showLoader()">
+                                            <div class="modal-body pt-2 text-center">
+                                                <input type="hidden" name="id" value="{{ row.id }}">
+                                                <div class="mb-3">
+                                                    <div class="avatar-initial mx-auto bg-av-{{ (loop.index % 5) + 1 }} mb-2" style="width: 50px; height: 50px; font-size: 1.5rem;">
+                                                        {{ row.nama_pengunjung[0] | upper }}
+                                                    </div>
+                                                    <h6 class="fw-bold mb-0">{{ row.nama_pengunjung }}</h6>
+                                                    <small class="text-muted">Kunjungan ke: {{ row.nama_wbp }}</small>
+                                                </div>
+                                                
+                                                <div class="form-floating">
+                                                    <select name="status" class="form-select border-primary" id="statusSelect{{ row.id }}">
+                                                        <option value="Pending" {% if row.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                                        <option value="Disetujui" {% if row.status == 'Disetujui' %}selected{% endif %}>Disetujui</option>
+                                                        <option value="Ditolak" {% if row.status == 'Ditolak' %}selected{% endif %}>Ditolak</option>
+                                                    </select>
+                                                    <label for="statusSelect{{ row.id }}">Pilih Status</label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-top-0 pt-0 justify-content-center">
+                                                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold">Simpan</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                        <div class="bg-light rounded-circle p-4 mb-3">
+                                            <i class="fas fa-inbox fa-3x text-secondary"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark">Tidak Ada Permohonan</h6>
+                                        <p class="small mb-0 text-muted">Belum ada data kunjungan yang masuk.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Data?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus data kunjungan ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="showLoader()">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const toggle = this.getAttribute("data-bs-toggle");
+                const onclick = this.getAttribute("onclick"); 
+                
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !toggle && !onclick) {
+                    showLoader();
+                }
+            });
+        });
+    });
+
+    // --- 2. NEW DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        // Set href tombol hapus di modal sesuai ID yang diklik
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        
+        // Tampilkan Modal
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+</script>
+
+{% endblock %}

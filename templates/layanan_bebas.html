@@ -1,0 +1,322 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95); /* Background hampir solid agar clean */
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 4px solid #f59e0b; /* Warna Emas/Amber sesuai tema halaman */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 20px;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e293b;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* Styling Khusus Halaman Bebas */
+    :root {
+        --freedom-gold: #f59e0b; /* Amber 500 */
+        --freedom-dark: #1e293b; /* Slate 800 */
+        --freedom-light: #fffbeb; /* Amber 50 */
+    }
+
+    body {
+        background-color: #f8fafc;
+    }
+
+    /* Header Unik */
+    .header-bebas {
+        background-color: var(--freedom-dark);
+        color: white;
+        padding: 4rem 0 6rem; /* Padding bawah besar untuk efek overlap */
+        position: relative;
+        overflow: hidden;
+    }
+
+    .header-bebas::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: #f8fafc;
+        border-top-left-radius: 50% 100%;
+        border-top-right-radius: 50% 100%;
+    }
+
+    /* Card Tabel Melayang */
+    .card-overlap {
+        margin-top: -4rem;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+        position: relative;
+        z-index: 10;
+    }
+
+    /* Tabel Styling */
+    .table-freedom thead th {
+        background-color: var(--freedom-light);
+        color: #92400e; /* Amber 800 */
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 1.25rem 1rem;
+        border-bottom: 2px solid #fcd34d; /* Amber 300 */
+    }
+
+    .table-freedom tbody td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+    }
+
+    .table-freedom tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    .table-freedom tr:hover {
+        background-color: #fffbeb; /* Amber 50 soft hover */
+    }
+
+    /* Tanggal Spesial */
+    .date-box {
+        display: inline-block;
+        text-align: center;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 4px 10px;
+        background: #fff;
+    }
+    .date-day {
+        display: block;
+        font-weight: 800;
+        font-size: 1.1rem;
+        color: var(--freedom-dark);
+        line-height: 1;
+    }
+    .date-month {
+        display: block;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    /* Badge Status Kustom */
+    .badge-status {
+        padding: 0.5em 1em;
+        border-radius: 50rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        letter-spacing: 0.5px;
+    }
+    .status-bebas { background-color: #d1fae5; color: #065f46; } /* Green */
+    .status-subsider { background-color: #ffedd5; color: #9a3412; } /* Orange */
+    .status-syarat { background-color: #e0f2fe; color: #075985; } /* Blue */
+
+    /* Tombol Download Floating */
+    .btn-float-excel {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+        background-color: #10b981;
+        color: white;
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-weight: 600;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        transition: transform 0.2s;
+        text-decoration: none;
+        z-index: 20;
+    }
+    .btn-float-excel:hover {
+        transform: scale(1.05);
+        color: white;
+        background-color: #059669;
+    }
+</style>
+
+<div id="pageLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="header-bebas text-center">
+    <div class="container position-relative">
+        <a href="{{ url_for('download_bebas') }}" class="btn-float-excel d-none d-md-inline-flex align-items-center">
+            <i class="fas fa-file-excel me-2"></i> Download Excel
+        </a>
+
+        <i class="fas fa-dove fa-3x text-warning mb-3 opacity-75"></i>
+        <h1 class="fw-bold mb-2">Jadwal Kebebasan WBP</h1>
+        <p class="text-white-50 fs-5">Daftar Warga Binaan yang akan segera menyelesaikan masa pidana.</p>
+    </div>
+</div>
+
+<div class="container pb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            
+            <div class="card card-overlap">
+                <div class="d-md-none p-3 text-center bg-light border-bottom">
+                    <a href="{{ url_for('download_bebas') }}" class="btn btn-success w-100">
+                        <i class="fas fa-file-excel me-2"></i> Download Data Excel
+                    </a>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-freedom mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-center" style="width: 10%;">No</th>
+                                <th style="width: 40%;">Nama Warga Binaan</th>
+                                <th class="text-center" style="width: 20%;">Tanggal Bebas</th>
+                                <th class="text-center" style="width: 30%;">Status Pembebasan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if data %}
+                                {% for row in data %}
+                                <tr>
+                                    <td class="text-center text-muted fw-bold">{{ loop.index }}</td>
+                                    
+                                    <td>
+                                        <span class="fw-bold d-block text-dark">{{ row.nama_wbp }}</span>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        <div class="date-box">
+                                            <span class="date-day">{{ row.tgl_ekspirasi.strftime('%d') }}</span>
+                                            <span class="date-month">{{ row.tgl_ekspirasi.strftime('%b %Y') }}</span>
+                                        </div>
+                                    </td>
+                                    
+                                    <td class="text-center">
+                                        {% if 'BEBAS' in row.keterangan.upper() and 'SYARAT' not in row.keterangan.upper() %}
+                                            <span class="badge-status status-bebas"><i class="fas fa-check me-1"></i> Murni</span>
+                                        {% elif 'SUBSIDER' in row.keterangan.upper() %}
+                                            <span class="badge-status status-subsider"><i class="fas fa-clock me-1"></i> Subsider</span>
+                                        {% else %}
+                                            <span class="badge-status status-syarat"><i class="fas fa-file-contract me-1"></i> Bersyarat</span>
+                                        {% endif %}
+                                        <div class="small text-muted mt-1" style="font-size: 0.7rem;">
+                                            {{ row.keterangan }}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="opacity-50">
+                                            <i class="fas fa-calendar-times fa-3x mb-3 text-secondary"></i>
+                                            <p class="text-muted fw-bold">Belum ada jadwal kebebasan dalam waktu dekat.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="{{ url_for('layanan') }}" class="text-decoration-none text-muted hover-dark fw-bold">
+                    <i class="fas fa-long-arrow-alt-left me-2"></i> Kembali ke Halaman Layanan
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- LOADER LOGIC ---
+    
+    // 1. Hilangkan Loader saat halaman selesai dimuat sepenuhnya
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('pageLoader');
+        // Delay sedikit agar smooth
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800);
+    });
+
+    // 2. Munculkan Loader saat berpindah halaman (Link Click)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        const loader = document.getElementById('pageLoader');
+
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                // Kondisi: href valid, bukan anchor/modal, bukan tab baru
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !toggle) {
+                    if(loader) loader.classList.remove('loader-hidden');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

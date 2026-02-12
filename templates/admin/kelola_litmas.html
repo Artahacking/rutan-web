@@ -1,0 +1,523 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        /* Vibrant Purple Palette */
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+        --bg-body: #f7f9fc;
+        --border-radius-xl: 24px;
+        --text-dark: #2d3748;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--bg-body);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+    }
+
+    .loader-spinner {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 5px solid #764ba2; /* Warna Ungu Theme */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 25px;
+        font-weight: 800;
+        font-size: 1.2rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* --- HERO HEADER --- */
+    .hero-header {
+        background: var(--primary-gradient);
+        border-radius: var(--border-radius-xl);
+        padding: 2.5rem 3rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 35px -5px rgba(118, 75, 162, 0.4);
+        margin-bottom: 2.5rem;
+    }
+
+    .hero-pattern {
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background-image: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.15) 0%, transparent 25%);
+        pointer-events: none;
+    }
+
+    .breadcrumb-item a { color: rgba(255,255,255,0.8); text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.5); }
+    .breadcrumb-item.active { color: white; font-weight: 600; }
+
+    /* --- CARD & TABLE --- */
+    .card-vibrant {
+        border: none;
+        border-radius: var(--border-radius-xl);
+        background: white;
+        box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        background: #fff;
+    }
+
+    .table-modern thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.8px;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .table-modern tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .table-modern tbody tr:hover td { background-color: #f8f9fe; }
+
+    /* --- ICONS & BADGES --- */
+    .avatar-icon {
+        width: 45px; height: 45px;
+        border-radius: 12px;
+        background: var(--primary-gradient);
+        color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; font-size: 1.2rem;
+        box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3);
+        margin-right: 15px;
+    }
+
+    .badge-soft {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .bg-soft-primary { background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; }
+    .bg-soft-warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+    /* --- BUTTONS --- */
+    .btn-action-main {
+        background: var(--success-gradient);
+        border: none; color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 176, 155, 0.3);
+        transition: all 0.3s;
+    }
+    .btn-action-main:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0, 176, 155, 0.4); color: white; }
+
+    .btn-outline-soft {
+        background: white; border: 2px solid #e2e8f0; color: #64748b;
+        padding: 0.7rem 1.5rem; border-radius: 12px; font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-outline-soft:hover { border-color: #764ba2; color: #764ba2; background: #f9f7fc; }
+
+    .btn-sm-action {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        display: inline-flex; align-items: center; justify-content: center;
+        border: none; transition: 0.2s;
+    }
+    .btn-edit { background: #e0e7ff; color: #4338ca; }
+    .btn-edit:hover { background: #4338ca; color: white; }
+    .btn-del { background: #fee2e2; color: #dc2626; }
+    .btn-del:hover { background: #dc2626; color: white; }
+
+    /* --- MODAL --- */
+    .modal-content-glass {
+        border: none; border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    }
+    .modal-header-gradient {
+        background: var(--primary-gradient); color: white;
+        border-radius: 20px 20px 0 0; padding: 1.5rem;
+    }
+    .form-control-modern {
+        border: 2px solid #f1f5f9; border-radius: 12px; padding: 0.75rem 1rem;
+        transition: 0.3s;
+    }
+    .form-control-modern:focus { border-color: #764ba2; box-shadow: 0 0 0 4px rgba(118, 75, 162, 0.1); }
+
+    /* --- MODAL CONFIRM DELETE MODERN --- */
+    .modal-confirm-content {
+        border-radius: 24px;
+        border: none;
+        overflow: hidden;
+    }
+    .icon-box-danger {
+        width: 80px; height: 80px;
+        margin: 0 auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fee2e2;
+        color: #ef4444;
+        font-size: 2.5rem;
+        animation: pulse-red 2s infinite;
+    }
+    @keyframes pulse-red {
+        0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+        70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+</style>
+
+<div id="globalLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="hero-header d-flex justify-content-between align-items-center">
+        <div class="position-relative z-1">
+            <h2 class="fw-bold mb-1"><i class="fas fa-clipboard-list me-2"></i> Pengumuman Litmas</h2>
+            <p class="mb-0 opacity-90">Manajemen data WBP yang diusulkan untuk Penelitian Kemasyarakatan.</p>
+        </div>
+        <div class="position-relative z-1 d-none d-md-block">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Litmas</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="hero-pattern"></div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center bg-white px-4 py-3">
+                    <div class="rounded-circle p-2 bg-{{ category }} bg-opacity-10 text-{{ category }} me-3">
+                        <i class="fas fa-{{ 'check-circle' if category=='success' else 'exclamation-circle' }} fs-5"></i>
+                    </div>
+                    <div class="fw-bold text-dark">{{ message }}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card card-vibrant">
+        <div class="card-header-flex">
+            <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center justify-content-center bg-light rounded-circle me-3" style="width: 50px; height: 50px;">
+                    <i class="fas fa-layer-group text-primary fs-4"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">Data Usulan</h5>
+                    <small class="text-muted">Total: <b>{{ data|length }}</b> WBP</small>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('template_litmas') }}" class="btn btn-outline-soft">
+                    <i class="fas fa-download me-2"></i> Template
+                </a>
+                <button class="btn btn-action-main" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="fas fa-file-import me-2"></i> Import Excel
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-modern mb-0">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Identitas WBP</th>
+                            <th class="text-center">Pidana (Thn)</th>
+                            <th class="text-center">Pidana (Bln)</th>
+                            <th>Besaran Denda</th>
+                            <th class="text-center">Subs (Bln)</th>
+                            <th class="text-end pe-4">Opsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if data %}
+                            {% for item in data %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-icon">
+                                            {{ item.nama_wbp[:1] }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ item.nama_wbp }}</div>
+                                            <div class="small text-muted"><i class="fas fa-hashtag me-1"></i>ID: {{ item.id }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span class="badge-soft bg-soft-primary">{{ item.pidana_tahun }} Tahun</span>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span class="badge-soft bg-soft-primary">{{ item.pidana_bulan }} Bulan</span>
+                                </td>
+                                
+                                <td>
+                                    <div class="d-flex align-items-center fw-bold text-dark">
+                                        <i class="fas fa-money-bill-wave text-success me-2"></i>
+                                        {{ item.besaran_denda }}
+                                    </div>
+                                </td>
+                                
+                                <td class="text-center">
+                                    <span class="badge-soft bg-soft-warning">{{ item.subs_bulan }} Bulan</span>
+                                </td>
+                                
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm-action btn-edit me-1" 
+                                            data-bs-toggle="modal" data-bs-target="#editModal{{ item.id }}" 
+                                            title="Edit Data">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </button>
+                                    
+                                    <button class="btn btn-sm-action btn-del"
+                                            onclick="openDeleteModal('{{ url_for('admin_litmas_delete', id=item.id) }}')" 
+                                            title="Hapus Data">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <div class="modal fade" id="editModal{{ item.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content modal-content-glass">
+                                        <div class="modal-header modal-header-gradient">
+                                            <h5 class="modal-title fw-bold"><i class="fas fa-user-edit me-2"></i> Edit Data WBP</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('admin_litmas_update') }}" method="POST" onsubmit="showLoader()">
+                                            <div class="modal-body p-4 bg-white">
+                                                <input type="hidden" name="id" value="{{ item.id }}">
+                                                
+                                                <div class="mb-4">
+                                                    <label class="form-label small fw-bold text-muted text-uppercase">Nama WBP</label>
+                                                    <input type="text" name="nama" class="form-control form-control-modern" value="{{ item.nama_wbp }}" required>
+                                                </div>
+
+                                                <div class="row g-3 mb-4">
+                                                    <div class="col-6">
+                                                        <label class="form-label small fw-bold text-muted text-uppercase">Pidana (Thn)</label>
+                                                        <input type="number" name="tahun" class="form-control form-control-modern text-center" value="{{ item.pidana_tahun }}">
+                                                    </div>
+                                                    <div class="col-6">
+                                                        <label class="form-label small fw-bold text-muted text-uppercase">Pidana (Bln)</label>
+                                                        <input type="number" name="bulan" class="form-control form-control-modern text-center" value="{{ item.pidana_bulan }}">
+                                                    </div>
+                                                </div>
+
+                                                <div class="row g-3">
+                                                    <div class="col-8">
+                                                        <label class="form-label small fw-bold text-muted text-uppercase">Denda (Rp)</label>
+                                                        <input type="text" name="denda" class="form-control form-control-modern" value="{{ item.besaran_denda }}">
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <label class="form-label small fw-bold text-muted text-uppercase">Subs (Bln)</label>
+                                                        <input type="number" name="subs" class="form-control form-control-modern text-center" value="{{ item.subs_bulan }}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 p-4 pt-0">
+                                                <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                                                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm border-0" style="background: var(--primary-gradient);">Simpan</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="d-flex flex-column align-items-center justify-content-center opacity-50">
+                                        <div class="bg-light rounded-circle p-4 mb-3">
+                                            <i class="fas fa-folder-open fa-3x text-secondary"></i>
+                                        </div>
+                                        <h6 class="fw-bold text-dark">Data Kosong</h6>
+                                        <p class="small mb-0 text-muted">Belum ada data usulan yang diupload.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-content-glass">
+            <div class="modal-header modal-header-gradient" style="background: var(--success-gradient);">
+                <h5 class="modal-title fw-bold"><i class="fas fa-file-excel me-2"></i> Import Database</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('admin_litmas_add') }}" method="POST" enctype="multipart/form-data" onsubmit="showLoader()">
+                <div class="modal-body p-4 bg-white">
+                    <div class="alert alert-light border-start border-4 border-warning shadow-sm mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-exclamation-triangle text-warning fs-4 me-3"></i>
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">Perhatian</h6>
+                                <p class="small text-muted mb-0">Sistem membaca mulai dari <b>Baris ke-4</b>. Gunakan template yang sesuai.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small text-uppercase">Pilih File Excel</label>
+                        <input type="file" name="file" class="form-control form-control-modern" required accept=".xlsx, .xls">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm border-0" style="background: var(--success-gradient);">
+                        <i class="fas fa-upload me-2"></i> Upload Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modal-confirm-content shadow-lg">
+            <div class="modal-body text-center p-5">
+                <div class="icon-box-danger mb-4">
+                    <i class="fas fa-trash-can"></i>
+                </div>
+                <h3 class="fw-bold mb-2 text-dark">Hapus Data?</h3>
+                <p class="text-muted mb-4">Apakah Anda yakin ingin menghapus data WBP ini? Tindakan ini tidak dapat dibatalkan.</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="showLoader()">Ya, Hapus</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 1. LOADER FUNCTIONS ---
+    function showLoader() {
+        const loader = document.getElementById('globalLoader');
+        if(loader) {
+            loader.classList.remove('loader-hidden');
+        }
+    }
+
+    // Hide Loader on Page Load
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('globalLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800); 
+    });
+
+    // Show Loader on Link Click (Page Transition)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const onclick = this.getAttribute("onclick"); // Avoid double triggering
+                
+                // Kondisi: href valid, bukan anchor, bukan tab baru, dan bukan button delete
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !onclick) {
+                    showLoader();
+                }
+            });
+        });
+    });
+
+    // --- 2. NEW DELETE MODAL LOGIC ---
+    function openDeleteModal(deleteUrl) {
+        document.getElementById('confirmDeleteBtn').setAttribute('href', deleteUrl);
+        var myModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        myModal.show();
+    }
+</script>
+
+{% endblock %}

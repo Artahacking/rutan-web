@@ -1,0 +1,191 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    /* --- 0. LOADER KEKINIAN --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(255, 255, 255, 0.98);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .loader-spinner {
+        width: 60px; height: 60px;
+        border-radius: 50%;
+        border: 4px solid #1e3c72;
+        border-top-color: #ffd700;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* --- ARTICLE STYLING (PERBAIKAN UTAMA) --- */
+    .article-card {
+        background: white;
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .article-header {
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 1.5rem;
+    }
+
+    .article-meta {
+        font-size: 0.9rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* Solusi Teks Tidak Nampak: Reset CSS Editor */
+    .article-content {
+        font-family: 'Georgia', 'Times New Roman', serif; /* Font enak dibaca */
+        font-size: 1.2rem;
+        line-height: 1.9;
+        color: #1e293b; /* Warna gelap solid */
+    }
+
+    /* Paksa semua elemen teks di dalam konten jadi hitam/gelap */
+    .article-content p, 
+    .article-content span, 
+    .article-content div, 
+    .article-content h1, .article-content h2, .article-content h3 {
+        color: #1e293b !important; /* Override warna bawaan editor */
+        background-color: transparent !important; /* Hapus highlight background */
+    }
+
+    /* Paksa gambar responsif agar tidak merusak layout */
+    .article-content img {
+        max-width: 100% !important;
+        height: auto !important;
+        border-radius: 12px;
+        margin: 1.5rem 0;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        display: block;
+    }
+
+    .sidebar-card {
+        border: none;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    
+    .recent-news-item {
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+        padding-left: 10px;
+    }
+    .recent-news-item:hover {
+        border-left-color: #ffd700;
+        background-color: #f8fafc;
+    }
+</style>
+
+<div id="pageLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div style="margin-top: 15px; font-weight: 700; letter-spacing: 1px; color: #1e3c72;">MEMUAT BERITA...</div>
+</div>
+
+<div class="container my-5 pt-4">
+    <div class="row g-5">
+        
+        <div class="col-lg-8">
+            <div class="card article-card p-4 p-md-5">
+                
+                <div class="article-header">
+                    <h1 class="fw-bold mb-3 text-dark" style="line-height: 1.4;">{{ item.title }}</h1>
+                    
+                    <div class="article-meta d-flex align-items-center gap-4">
+                        <span><i class="fas fa-user-circle me-2 text-primary"></i> {{ item.author }}</span>
+                        <span><i class="far fa-calendar-alt me-2 text-warning"></i> {{ item.created_at }}</span>
+                    </div>
+                </div>
+
+                {% if item.image %}
+                <div class="mb-4">
+                    <img src="{{ url_for('static', filename='uploads/' + item.image) }}" class="img-fluid rounded-4 w-100 shadow-sm" alt="{{ item.title }}">
+                </div>
+                {% endif %}
+
+                <div class="article-content">
+                    {{ item.content | safe }}
+                </div>
+                
+                <hr class="my-5 border-secondary border-opacity-10">
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <a href="{{ url_for('berita') }}" class="btn btn-outline-dark rounded-pill px-4 fw-bold">
+                        <i class="fas fa-arrow-left me-2"></i> Kembali
+                    </a>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-light rounded-circle text-primary"><i class="fab fa-facebook-f"></i></button>
+                        <button class="btn btn-light rounded-circle text-success"><i class="fab fa-whatsapp"></i></button>
+                        <button class="btn btn-light rounded-circle text-info"><i class="fab fa-twitter"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card sidebar-card sticky-top" style="top: 100px; z-index: 1;">
+                <div class="card-header bg-white border-bottom p-4">
+                    <h5 class="fw-bold mb-0 text-dark border-start border-4 border-warning ps-3">Berita Terbaru</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for r in recent %}
+                        <a href="{{ url_for('detail_berita', id=r.id) }}" class="list-group-item list-group-item-action p-4 recent-news-item">
+                            <h6 class="fw-bold text-dark mb-2" style="font-size: 0.95rem; line-height: 1.5;">{{ r.title }}</h6>
+                            <div class="d-flex align-items-center text-muted small">
+                                <i class="far fa-clock me-2 text-warning"></i>
+                                {{ r.created_at.strftime('%d %b %Y') }}
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- LOADER LOGIC ---
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('pageLoader');
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800);
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        const loader = document.getElementById('pageLoader');
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                
+                if (href && href !== "#" && href !== "" && target !== "_blank") {
+                    if(loader) loader.classList.remove('loader-hidden');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

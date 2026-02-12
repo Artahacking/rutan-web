@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutan Kelas IIB Pangkalan Brandan</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <style>
+        /* --- 1. GLOBAL VARS & RESET --- */
+        :root {
+            --primary-dark: #0f172a;   /* Slate 900 */
+            --primary-blue: #1e3a8a;   /* Blue 900 */
+            --accent-gold: #d97706;    /* Amber 600 */
+            --text-light: #f8fafc;     /* Slate 50 */
+            --text-muted: #94a3b8;     /* Slate 400 */
+            --bg-body: #f1f5f9;        /* Slate 100 */
+            --nav-bg: #003366;         /* Navy Blue Navbar */
+            --nav-height: 80px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: #334155;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 2. LOADING SCREEN (PREMIUM) --- */
+        #page-loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            z-index: 99999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+
+        .loader-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .spinner-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid rgba(30, 58, 138, 0.1);
+            border-top-color: var(--accent-gold);
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--primary-dark);
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+
+
+        /* --- 3. NAVBAR (GLASS & STICKY) --- */
+        .navbar-custom {
+            background-color: var(--nav-bg); /* Solid Dark Navy */
+            height: var(--nav-height);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand img {
+            height: 45px;
+            transition: transform 0.3s;
+        }
+
+        .brand-text {
+            line-height: 1.2;
+            color: white;
+            margin-left: 10px;
+        }
+        .brand-title { font-weight: 700; font-size: 1rem; letter-spacing: 0.5px; }
+        .brand-subtitle { font-weight: 300; font-size: 0.75rem; color: var(--accent-gold); letter-spacing: 1px; }
+
+        /* Menu Links */
+        .nav-link {
+            color: rgba(255,255,255,0.8) !important;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 0 1.2rem !important;
+            transition: color 0.3s ease;
+            position: relative;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: #fff !important;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 20px;
+            height: 2px;
+            background-color: var(--accent-gold);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::after, .nav-link.active::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+
+        /* --- 4. DROPDOWN (DARK THEME & NESTED FIX) --- */
+        .dropdown-menu {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 0;
+            background: var(--nav-bg); /* Dark Navy Background */
+            margin-top: 15px; /* Spacing from navbar */
+            min-width: 260px;
+            overflow: hidden; /* Rounded corners clip content */
+            animation: slideUp 0.3s ease forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 12px 20px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9); /* Text Light */
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dropdown-item:last-child { border-bottom: none; }
+
+        .dropdown-item:hover, .dropdown-item:focus {
+            background-color: #004080; /* Slightly lighter navy */
+            color: var(--accent-gold); /* Gold Accent Text */
+            padding-left: 25px; /* Slide effect */
+        }
+
+        .dropdown-item i { width: 20px; text-align: center; margin-right: 10px; }
+
+        /* Nested Dropdown (Accordion Style - Dark Mode) */
+        .dropdown-submenu {
+            display: none;
+            background-color: rgba(0, 0, 0, 0.2); /* Darker background for nested */
+            border-radius: 0;
+            margin: 0;
+            padding: 0;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.2);
+        }
+        
+        .has-submenu:hover > .dropdown-submenu {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .dropdown-submenu .dropdown-item {
+            padding-left: 35px;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            border-bottom: none;
+        }
+
+        .dropdown-submenu .dropdown-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            padding-left: 40px;
+        }
+
+        /* --- 5. CAROUSEL FIX --- */
+        .carousel-item {
+            height: 85vh; /* Tinggi fullscreen responsif */
+            min-height: 500px;
+            background-color: #000;
+        }
+        
+        .carousel-item img {
+            object-fit: cover;
+            object-position: center;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8; /* Sedikit gelap agar teks terbaca */
+        }
+
+        @media (max-width: 768px) {
+            .carousel-item { height: 50vh; min-height: 300px; }
+            .navbar-brand img { height: 35px; }
+            .brand-title { font-size: 0.9rem; }
+            .brand-subtitle { font-size: 0.65rem; }
+            
+            /* Mobile Menu Style */
+            .navbar-collapse {
+                background: var(--nav-bg); /* Dark bg for mobile menu */
+                padding: 20px;
+                border-radius: 16px;
+                margin-top: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            }
+            .nav-link { color: rgba(255,255,255,0.9) !important; padding: 10px 0 !important; }
+            .nav-link:hover { color: var(--accent-gold) !important; }
+        }
+
+        /* --- 6. FOOTER (CLEAN) --- */
+        footer {
+            background-color: var(--primary-dark);
+            color: #cbd5e1;
+            padding-top: 4rem;
+            margin-top: auto;
+        }
+        
+        .footer-title {
+            color: white;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-link {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: 0.3s;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .footer-link:hover { color: var(--accent-gold); padding-left: 5px; }
+
+        .footer-bottom {
+            background-color: rgba(0,0,0,0.2);
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+        }
+
+        /* --- 7. MAIN CONTENT SPACING (FIX NAVBAR OVERLAP) --- */
+        main {
+            padding-top: 100px; /* Jarak aman di bawah navbar */
+            flex: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="page-loader">
+        <div class="spinner-logo"></div>
+        <div class="loader-text">MEMUAT HALAMAN...</div>
+    </div>
+
+    <nav class="navbar navbar-expand-lg fixed-top navbar-custom navbar-dark">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <div class="d-flex gap-2">
+                    <img src="{{ url_for('static', filename='Logo Kemenimipas.png') }}" alt="Logo Kemenimipas">
+                    <img src="{{ url_for('static', filename='Logo Pemasyarakatan.png') }}" alt="Logo PAS">
+                    <img src="{{ url_for('static', filename='rutan.jpg') }}" alt="Logo Rutan" class="rounded-circle border border-2 border-white">
+                </div>
+                <div class="brand-text d-none d-md-block">
+                    <div class="brand-title">RUTAN KELAS IIB</div>
+                    <div class="brand-subtitle">PANGKALAN BRANDAN</div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="mainNav">
+                <ul class="navbar-nav ms-auto align-items-center gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}" href="{{ url_for('index') }}">Beranda</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'profil' %}active{% endif %}" href="{{ url_for('profil') }}">Profil</a>
+                    </li>
+                    
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Layanan Publik
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li class="has-submenu">
+                                <a class="dropdown-item" href="{{ url_for('layanan') }}">
+                                    <span><i class="fas fa-hand-holding-heart text-warning me-2"></i> Integrasi</span>
+                                    <i class="fas fa-chevron-down small opacity-50"></i>
+                                </a>
+                                <ul class="dropdown-submenu">
+                                    <li><a class="dropdown-item" href="{{ url_for('layanan_litmas') }}">Pengumuman Litmas</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('layanan_bebas') }}">Daftar WBP Bebas</a></li>
+                                </ul>
+                            </li>
+                            
+                            <li><hr class="dropdown-divider"></li>
+                            
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('layanan_kunjungan') }}">
+                                    <span><i class="fas fa-users text-info me-2"></i> Kunjungan</span>
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider"></li>
+
+                            <li class="has-submenu">
+                                <a class="dropdown-item" href="#">
+                                    <span><i class="fas fa-headset text-danger me-2"></i> Pengaduan</span>
+                                    <i class="fas fa-chevron-down small opacity-50"></i>
+                                </a>
+                                <ul class="dropdown-submenu">
+                                    <li><a class="dropdown-item" href="{{ url_for('layanan_informasi') }}">Permintaan Info</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('layanan_pengaduan_user') }}">Lapor Pengaduan</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'berita' %}active{% endif %}" href="{{ url_for('berita') }}">Berita</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'galeri' %}active{% endif %}" href="{{ url_for('galeri') }}">Galeri</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'kontak' %}active{% endif %}" href="{{ url_for('kontak') }}">Kontak</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main> 
+        <div class="container position-fixed start-50 translate-middle-x" style="top: 100px; z-index: 1050; max-width: 600px;">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm border-0 rounded-3 bg-white" role="alert">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-info-circle me-3 text-{{ category }} fs-4"></i>
+                                <div>{{ message }}</div>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="row gy-5">
+                <div class="col-lg-5 col-md-6">
+                    <h5 class="footer-title">Rutan Kelas IIB <br>Pangkalan Brandan</h5>
+                    <p class="text-white-50 mb-4 pe-lg-5">
+                        Melayani dengan Hati, Bekerja dengan Pasti. Kami berkomitmen memberikan pelayanan pemasyarakatan yang transparan dan akuntabel.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-white fs-5"><i class="fab fa-facebook"></i></a>
+                        
+                        <a href="https://www.instagram.com/rutanpbrandan?igsh=MTBramFtc3ltZmM2Mw==" target="_blank" class="text-white fs-5">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        
+                        <a href="https://youtube.com/@rutanbrandan8821?si=v1T6QtmVJNtqnWAw" target="_blank" class="text-white fs-5">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                        
+                        <a href="https://www.tiktok.com/@rutanbrandan?_r=1&_t=ZS-935AWCXJCKL" target="_blank" class="text-white fs-5">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="text-uppercase fw-bold text-white mb-4 ls-1">Menu Utama</h6>
+                    <a href="{{ url_for('profil') }}" class="footer-link">Profil & Sejarah</a>
+                    <a href="{{ url_for('layanan') }}" class="footer-link">Layanan Publik</a>
+                    <a href="{{ url_for('berita') }}" class="footer-link">Berita Terkini</a>
+                    <a href="{{ url_for('galeri') }}" class="footer-link">Galeri Foto</a>
+                </div>
+
+                <div class="col-lg-4 col-md-12">
+                    <h6 class="text-uppercase fw-bold text-white mb-4 ls-1">Hubungi Kami</h6>
+                    <ul class="list-unstyled text-white-50">
+                        <li class="mb-3 d-flex"><i class="fas fa-map-marker-alt mt-1 me-3 text-warning"></i> Jl. Stasiun No.9, Brandan Tim. Baru, Babalan, Langkat</li>
+                        <li class="mb-3 d-flex"><i class="fas fa-phone mt-1 me-3 text-warning"></i> (061) 12345678</li>
+                        <li class="d-flex"><i class="fas fa-envelope mt-1 me-3 text-warning"></i> rutanbrandan@kemenkumham.go.id</li>
+                    </ul>
+                    
+                    <div class="mt-4 pt-4 border-top border-secondary border-opacity-25 d-flex gap-3">
+                        <img src="{{ url_for('static', filename='Logo Kemenimipas.png') }}" height="50">
+                        <img src="{{ url_for('static', filename='Logo Pemasyarakatan.png') }}" height="50">
+                        <img src="{{ url_for('static', filename='rutan.jpg') }}" height="50" class="rounded-circle opacity-75">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="container text-center">
+                <div class="mb-2">
+                    &copy; 2026 <strong>Rutan Pangkalan Brandan</strong>. All Rights Reserved.
+                </div>
+                <div class="d-flex justify-content-center align-items-center gap-3">
+
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // --- 1. LOADER SCRIPT ---
+        window.addEventListener("load", function() {
+            const loader = document.getElementById("page-loader");
+            if (loader) {
+                setTimeout(function() {
+                    loader.classList.add("loader-hidden");
+                }, 500); // Delay dikit biar smooth
+            }
+        });
+
+        // Tampilkan loader saat klik link (Page Transition)
+        document.addEventListener("DOMContentLoaded", function() {
+            const links = document.querySelectorAll("a");
+            const loader = document.getElementById("page-loader");
+            
+            links.forEach(link => {
+                link.addEventListener("click", function(e) {
+                    const href = this.getAttribute("href");
+                    const target = this.getAttribute("target");
+                    const toggle = this.getAttribute("data-bs-toggle");
+
+                    // Cek link valid internal
+                    if (href && href.startsWith("/") && href !== "#" && target !== "_blank" && !toggle) {
+                        if(loader) {
+                            loader.classList.remove("loader-hidden");
+                        }
+                    }
+                });
+            });
+        });
+
+        // --- 2. NAVBAR SCROLL EFFECT ---
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar-custom');
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = "0 4px 20px rgba(0,0,0,0.1)";
+                navbar.style.padding = "10px 0"; // Perkecil saat scroll
+            } else {
+                navbar.style.boxShadow = "none";
+                navbar.style.padding = "15px 0"; // Normal
+            }
+        });
+    </script>
+</body>
+</html>

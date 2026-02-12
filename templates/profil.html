@@ -1,0 +1,499 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    :root {
+        --p-primary: #0f172a; /* Dark Navy */
+        --p-secondary: #1e40af; /* Royal Blue */
+        --p-gold: #d97706; /* Elegant Gold */
+        --p-bg: #f8fafc;
+        --p-card-shadow: 0 10px 30px -5px rgba(0,0,0,0.1);
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background-color: var(--p-bg);
+    }
+
+    /* --- 0. LOADER KEKINIAN (Glassmorphism - Navy Theme) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 4px solid var(--p-gold); /* Warna Emas Elegan */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 20px;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--p-primary);
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+
+    /* --- 1. HERO SECTION WITH CURVE --- */
+    .profile-hero {
+        background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        color: white;
+        padding-top: 6rem;
+        padding-bottom: 8rem; /* Extra padding for curve */
+        position: relative;
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 3rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 10px;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.8;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+    }
+
+    /* SVG Wave Divider */
+    .custom-shape-divider-bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        overflow: hidden;
+        line-height: 0;
+    }
+    .custom-shape-divider-bottom svg {
+        position: relative;
+        display: block;
+        width: calc(137% + 1.3px);
+        height: 100px;
+    }
+    .custom-shape-divider-bottom .shape-fill {
+        fill: var(--p-bg);
+    }
+
+    /* --- 2. OFFICIAL CARDS --- */
+    .section-container {
+        margin-top: -6rem; /* Pull up to overlap header */
+        position: relative;
+        z-index: 10;
+        margin-bottom: 5rem;
+    }
+
+    .card-official {
+        background: white;
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: var(--p-card-shadow);
+        transition: all 0.4s ease;
+        height: 100%;
+        position: relative;
+    }
+
+    .card-official:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+    }
+
+    /* Foto Profile */
+    .img-frame {
+        height: 350px;
+        overflow: hidden;
+        position: relative;
+        background-color: #cbd5e1;
+    }
+    
+    .img-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        transition: transform 0.5s ease;
+    }
+
+    .card-official:hover .img-frame img {
+        transform: scale(1.05);
+    }
+
+    /* Info Box */
+    .info-box {
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        background: white;
+    }
+
+    .info-box::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, var(--p-secondary), var(--p-gold));
+        transform: scaleX(0);
+        transition: transform 0.4s ease;
+    }
+
+    .card-official:hover .info-box::after {
+        transform: scaleX(1);
+    }
+
+    .official-name {
+        font-weight: 700;
+        color: var(--p-primary);
+        font-size: 1.1rem;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .official-role {
+        font-size: 0.8rem;
+        color: var(--p-gold);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    /* Highlight Card (Kepala Rutan) */
+    .card-highlight {
+        border: 1px solid rgba(217, 119, 6, 0.2);
+    }
+    .card-highlight .img-frame {
+        height: 420px; /* Lebih besar */
+    }
+    .card-highlight .official-name {
+        font-size: 1.4rem;
+    }
+
+    /* --- 3. TIMELINE SEJARAH --- */
+    .history-section {
+        padding: 4rem 0;
+        background: white;
+    }
+
+    .section-title-wrapper {
+        text-align: center;
+        margin-bottom: 4rem;
+    }
+    .section-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.5rem;
+        color: var(--p-primary);
+        font-weight: 700;
+    }
+    .section-divider {
+        width: 80px; height: 4px;
+        background: var(--p-gold);
+        margin: 1rem auto;
+        border-radius: 2px;
+    }
+
+    .timeline-container {
+        position: relative;
+        padding-left: 3rem;
+        border-left: 3px solid #e2e8f0;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 3rem;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -3.65rem;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        background: var(--p-gold);
+        border: 4px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 0 3px #e2e8f0;
+    }
+
+    .timeline-content {
+        background: #f8fafc;
+        padding: 2rem;
+        border-radius: 16px;
+        border-left: 5px solid var(--p-secondary);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        transition: transform 0.3s;
+    }
+    .timeline-content:hover {
+        transform: translateX(5px);
+        background: white;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    }
+
+    .year-badge {
+        display: inline-block;
+        background: var(--p-primary);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .timeline-heading {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--p-primary);
+        margin-bottom: 0.8rem;
+    }
+
+    .timeline-text {
+        color: #475569;
+        line-height: 1.7;
+        text-align: justify;
+        font-size: 0.95rem;
+    }
+
+    /* --- 4. ORGANISASI --- */
+    .org-section {
+        padding: 5rem 0;
+        background-color: #f1f5f9;
+        text-align: center;
+    }
+    .org-box {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 20px;
+        box-shadow: var(--p-card-shadow);
+        display: inline-block;
+    }
+
+</style>
+
+<div id="profileLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Profil...</div>
+</div>
+
+<div class="profile-hero">
+    <div class="container relative z-10">
+        <h1 class="hero-title">Profil & Sejarah</h1>
+        <p class="hero-subtitle">Mengenal lebih dekat Rutan Kelas IIB Pangkalan Brandan</p>
+    </div>
+    
+    <div class="custom-shape-divider-bottom">
+        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
+        </svg>
+    </div>
+</div>
+
+<div class="container section-container">
+    
+    {% if main %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card-official card-highlight">
+                <div class="img-frame">
+                    {% if main.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + main.image) }}" alt="{{ main.title }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/400x500?text=No+Image">
+                    {% endif %}
+                </div>
+                <div class="info-box">
+                    <h5 class="official-name">{{ main.title }}</h5>
+                    <div class="official-role">{{ (main.content or 'KEPALA RUTAN') | striptags }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row g-4 justify-content-center">
+        {% for point in points %}
+        <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="card-official">
+                <div class="img-frame">
+                    {% if point.image %}
+                    <img src="{{ url_for('static', filename='uploads/' + point.image) }}" alt="{{ point.title }}">
+                    {% else %}
+                    <img src="https://via.placeholder.com/300x400?text=No+Image">
+                    {% endif %}
+                </div>
+                <div class="info-box">
+                    <div class="official-name" style="font-size: 1rem;">{{ point.title }}</div>
+                    <div class="official-role" style="font-size: 0.7rem;">{{ point.content | striptags }}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<section class="history-section">
+    <div class="container">
+        <div class="section-title-wrapper">
+            <h6 class="text-uppercase fw-bold text-muted small ls-2">Jejak Langkah</h6>
+            <h2 class="section-title">Sejarah Perjalanan</h2>
+            <div class="section-divider"></div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="timeline-container">
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="year-badge">1945 - Awal Berdiri</span>
+                            <h4 class="timeline-heading">Lembaga Pemasyarakatan Pangkalan Brandan</h4>
+                            <p class="timeline-text">
+                                Rumah Tahanan Negara (Rutan) Kelas IIB Pangkalan Brandan memiliki sejarah panjang yang dimulai sejak tahun 1945. 
+                                Berdiri di atas lahan seluas <strong>6.627 m²</strong>, instansi ini pada masa awal pendiriannya dikenal dengan nomenklatur 
+                                <strong>Lembaga Pemasyarakatan Pangkalan Brandan</strong>. Pendirian ini menandai dimulainya fungsi pemasyarakatan di wilayah tersebut sejak masa awal kemerdekaan Republik Indonesia.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="year-badge">Masa Transisi</span>
+                            <h4 class="timeline-heading">Cabang Rutan Binjai</h4>
+                            <p class="timeline-text">
+                                Seiring dengan perkembangan regulasi, dinamika hukum, dan kebijakan kelembagaan pemasyarakatan di Indonesia, status kelembagaan instansi ini mengalami perubahan. 
+                                Nama institusi kemudian berubah status menjadi <strong>Cabang Rumah Tahanan Negara (Rutan) Binjai di Pangkalan Brandan</strong>. 
+                                Perubahan ini merupakan bagian dari restrukturisasi organisasi di lingkungan Departemen Kehakiman pada masa itu.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <span class="year-badge">2004 - Sekarang</span>
+                            <h4 class="timeline-heading">Rutan Kelas IIB Pangkalan Brandan</h4>
+                            <p class="timeline-text">
+                                Pada tahun 2004, instansi ini secara resmi dikukuhkan dan ditetapkan menjadi <strong>Rumah Tahanan Negara Kelas IIB Pangkalan Brandan</strong>. 
+                                Sebagai salah satu Unit Pelaksana Teknis (UPT) di bawah naungan Kantor Wilayah Kementerian Hukum dan HAM Sumatera Utara, Rutan ini bertugas melaksanakan perawatan, pembinaan, dan pengamanan terhadap tahanan serta warga binaan pemasyarakatan hingga saat ini.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="timeline-item">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content" style="border-left-color: var(--p-gold);">
+                            <span class="year-badge" style="background: var(--p-gold);">Lokasi Strategis</span>
+                            <h4 class="timeline-heading">Letak Geografis</h4>
+                            <p class="timeline-text mb-3">
+                                Rutan Kelas IIB Pangkalan Brandan menempati lokasi strategis dengan batas-batas wilayah yang jelas:
+                            </p>
+                            <ul class="list-unstyled mb-0 small fw-bold text-secondary bg-white p-3 rounded border">
+                                <li class="mb-2"><i class="fas fa-arrow-circle-up text-primary me-2"></i> <strong>Utara:</strong> Jalan Stasiun</li>
+                                <li class="mb-2"><i class="fas fa-arrow-circle-right text-primary me-2"></i> <strong>Timur:</strong> Sekolah SMA Negeri 1 Babalan</li>
+                                <li class="mb-2"><i class="fas fa-arrow-circle-down text-primary me-2"></i> <strong>Selatan:</strong> Perumahan PU Langkat</li>
+                                <li><i class="fas fa-arrow-circle-left text-primary me-2"></i> <strong>Barat:</strong> Gang LP</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="org-section">
+    <div class="container">
+        <h2 class="section-title mb-2">Struktur Organisasi</h2>
+        <p class="text-muted mb-5">Bagan Struktur Rutan Kelas IIB Pangkalan Brandan</p>
+        
+        <div class="org-box">
+            <img src="{{ url_for('static', filename='petinggi.jpg') }}" class="img-fluid rounded" alt="Struktur Organisasi">
+        </div>
+    </div>
+</section>
+
+<script>
+    // --- LOADER LOGIC ---
+    
+    // 1. Hilangkan Loader saat halaman selesai dimuat sepenuhnya
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('profileLoader');
+        // Delay sedikit agar smooth
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800);
+    });
+
+    // 2. Munculkan Loader saat berpindah halaman (Link Click)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        const loader = document.getElementById('profileLoader');
+
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                // Kondisi: href valid, bukan anchor/modal, bukan tab baru
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !toggle) {
+                    if(loader) loader.classList.remove('loader-hidden');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    /* --- 0. LOADER KEKINIAN (Glassmorphism) --- */
+    .loader-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95); /* Background hampir solid agar clean */
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        transition: opacity 0.6s ease, visibility 0.6s ease;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .loader-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .loader-spinner {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        position: relative;
+        animation: rotate 1s linear infinite;
+    }
+
+    .loader-spinner::before {
+        content: "";
+        box-sizing: border-box;
+        position: absolute;
+        inset: 0px;
+        border-radius: 50%;
+        border: 4px solid #1e3c72; /* Warna Biru Rutan */
+        animation: prixClipFix 2s linear infinite;
+    }
+
+    .loader-text {
+        margin-top: 20px;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: 700;
+        font-size: 1rem;
+        color: #1e3c72;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes rotate { 100% {transform: rotate(360deg)} }
+    @keyframes prixClipFix {
+        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
+        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
+        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
+        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
+        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+    }
+    @keyframes pulse { 0% { opacity: 0.6; transform: scale(0.98); } 50% { opacity: 1; transform: scale(1); } 100% { opacity: 0.6; transform: scale(0.98); } }
+
+    /* Styling Halaman */
+    .page-header {
+        background: linear-gradient(to right, #1e3c72, #2a5298); /* Biru Rutan/Kemenkumham */
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: -3rem; /* Efek overlap */
+        position: relative;
+    }
+
+    .glass-btn {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        transition: all 0.3s;
+    }
+    .glass-btn:hover {
+        background: white;
+        color: #1e3c72;
+    }
+
+    .main-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        overflow: hidden;
+        background: white;
+    }
+
+    .table-custom thead th {
+        background-color: #2d3436; /* Dark Slate */
+        color: #dfe6e9;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        padding: 1.2rem 1rem;
+        border: none;
+    }
+
+    .table-custom tbody td {
+        padding: 1.2rem 1rem;
+        vertical-align: middle;
+        color: #2d3436;
+        border-bottom: 1px solid #f1f2f6;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .table-custom tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.005); /* Efek zoom in dikit banget biar kerasa interaktif */
+        transition: transform 0.2s;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        z-index: 2;
+        position: relative;
+    }
+
+    .badge-year {
+        background-color: #e3f2fd;
+        color: #1565c0;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .badge-subs {
+        background-color: #fff3e0;
+        color: #ef6c00;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .denda-text {
+        font-family: 'Courier New', Courier, monospace;
+        color: #c0392b;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+</style>
+
+<div id="pageLoader" class="loader-overlay">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Memuat Data...</div>
+</div>
+
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h2 class="fw-bold mb-1"><i class="fas fa-bullhorn me-2 opacity-75"></i> Pengumuman Litmas</h2>
+                <p class="mb-0 opacity-75">Daftar Warga Binaan Pemasyarakatan (WBP) yang memenuhi syarat usulan.</p>
+            </div>
+            <div>
+                <a href="{{ url_for('download_litmas') }}" class="btn glass-btn px-4 py-2 rounded-pill fw-bold text-decoration-none">
+                    <i class="fas fa-file-excel me-2"></i> Download Excel
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="pb-5 bg-light" style="padding-top: 5rem; min-height: 80vh;">
+    <div class="container">
+        
+        <div class="card main-card">
+            <div class="card-header bg-white border-bottom py-3 px-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="text-uppercase fw-bold text-muted small mb-0 ls-1">Data Terverifikasi</h6>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 rounded-pill">
+                        <i class="fas fa-check-circle me-1"></i> Updated
+                    </span>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-custom mb-0 w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-center ps-4" width="5%">No</th>
+                                <th width="30%">Nama Warga Binaan</th>
+                                <th class="text-center" width="15%">Pidana (Tahun)</th>
+                                <th class="text-center" width="15%">Pidana (Bulan)</th>
+                                <th width="20%">Besaran Denda</th>
+                                <th class="text-center pe-4" width="15%">Subsider</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in data %}
+                            <tr>
+                                <td class="text-center ps-4 text-muted fw-bold">{{ loop.index }}</td>
+                                <td>
+                                    <span class="d-block fw-bold text-dark">{{ item.nama_wbp }}</span>
+                                </td>
+                                <td class="text-center">
+                                    {% if item.pidana_tahun > 0 %}
+                                        <span class="badge-year">{{ item.pidana_tahun }} Tahun</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if item.pidana_bulan > 0 %}
+                                        <span class="badge-year">{{ item.pidana_bulan }} Bulan</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="denda-text">{{ item.besaran_denda }}</div>
+                                </td>
+                                <td class="text-center pe-4">
+                                    {% if item.subs_bulan > 0 %}
+                                        <span class="badge-subs">{{ item.subs_bulan }} Bulan</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="py-4">
+                                        <i class="fas fa-folder-open fa-3x text-muted opacity-25 mb-3"></i>
+                                        <h5 class="text-muted fw-bold">Data Belum Tersedia</h5>
+                                        <p class="text-muted small">Silakan hubungi petugas untuk informasi lebih lanjut.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer bg-light text-center py-3 border-top">
+                <small class="text-muted fst-italic">* Data di atas dapat berubah sewaktu-waktu sesuai hasil verifikasi terbaru.</small>
+            </div>
+        </div>
+
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('layanan') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="fas fa-arrow-left me-2"></i> Kembali ke Menu Layanan
+            </a>
+        </div>
+
+    </div>
+</section>
+
+<script>
+    // --- LOADER LOGIC ---
+    
+    // 1. Hilangkan Loader saat halaman selesai dimuat sepenuhnya
+    window.addEventListener("load", function() {
+        const loader = document.getElementById('pageLoader');
+        // Delay sedikit agar smooth
+        setTimeout(function() {
+            loader.classList.add("loader-hidden");
+        }, 800);
+    });
+
+    // 2. Munculkan Loader saat berpindah halaman (Link Click)
+    document.addEventListener("DOMContentLoaded", function() {
+        const links = document.querySelectorAll("a");
+        const loader = document.getElementById('pageLoader');
+
+        links.forEach(link => {
+            link.addEventListener("click", function(e) {
+                const href = this.getAttribute("href");
+                const target = this.getAttribute("target");
+                const toggle = this.getAttribute("data-bs-toggle");
+                
+                // Kondisi: href valid, bukan anchor/modal, bukan tab baru
+                if (href && href !== "#" && href !== "" && target !== "_blank" && !toggle) {
+                    if(loader) loader.classList.remove('loader-hidden');
+                }
+            });
+        });
+    });
+</script>
+
+{% endblock %}

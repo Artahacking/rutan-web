@@ -1,0 +1,294 @@
+{% extends "admin/layout.html" %}
+
+{% block admin_content %}
+
+<style>
+    :root {
+        /* Dashboard Palette */
+        --dash-primary: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        --dash-bg: #f8fafc;
+        --card-bg: #ffffff;
+        --text-main: #1e293b;
+        --text-sub: #64748b;
+        --border-radius-lg: 24px;
+        --border-radius-md: 16px;
+    }
+
+    /* --- HERO WELCOME --- */
+    .welcome-banner {
+        background: var(--dash-primary);
+        border-radius: var(--border-radius-lg);
+        padding: 3rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 40px -10px rgba(79, 70, 229, 0.4);
+        margin-bottom: 3rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .welcome-content {
+        position: relative;
+        z-index: 2;
+        max-width: 700px;
+    }
+
+    .welcome-pattern {
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+
+    .welcome-icon {
+        position: absolute;
+        right: 2rem;
+        bottom: -2rem;
+        font-size: 12rem;
+        opacity: 0.1;
+        transform: rotate(-15deg);
+    }
+
+    .date-pill {
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    /* --- STATS CARDS --- */
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-md);
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        border: 1px solid #f1f5f9;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        border-color: #e2e8f0;
+    }
+
+    .stat-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        margin-bottom: 1rem;
+    }
+
+    /* Variant Colors */
+    .bg-light-purple { background: #f3e8ff; color: #9333ea; }
+    .bg-light-blue { background: #e0f2fe; color: #0284c7; }
+    .bg-light-green { background: #dcfce7; color: #16a34a; }
+    .bg-light-orange { background: #ffedd5; color: #ea580c; }
+
+    .stat-title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-main);
+        line-height: 1;
+    }
+
+    .stat-link {
+        margin-top: 1.5rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: gap 0.2s;
+    }
+    
+    .text-purple { color: #9333ea; }
+    .text-blue { color: #0284c7; }
+    .text-green { color: #16a34a; }
+    .text-orange { color: #ea580c; }
+
+    .stat-link:hover { gap: 8px; text-decoration: underline; }
+
+    /* --- QUICK ACTIONS --- */
+    .quick-action-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: all 0.2s;
+        cursor: pointer;
+        height: 100%;
+    }
+    .quick-action-card:hover {
+        border-color: #6366f1;
+        background: #f8fafc;
+        transform: translateY(-3px);
+    }
+    .quick-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        color: #64748b;
+    }
+    .quick-action-card:hover .quick-icon { color: #4f46e5; }
+    .quick-title { font-weight: 600; color: #1e293b; font-size: 0.95rem; }
+
+</style>
+
+<div class="container-fluid px-4 py-5">
+
+    <div class="welcome-banner">
+        <div class="welcome-pattern"></div>
+        <div class="welcome-content">
+            <div class="date-pill">
+                <i class="far fa-calendar-alt"></i> <span id="currentDate"></span>
+            </div>
+            <h1 class="fw-bold mb-2 display-6">Selamat Datang, {{ session.get('user', 'Admin') }}!</h1>
+            <p class="mb-0 fs-5 opacity-90">
+                Dashboard Rutan Kelas IIB Pangkalan Brandan.
+                <br><span class="fs-6 opacity-75">Kelola data, pantau statistik, dan update informasi rutan dengan mudah.</span>
+            </p>
+        </div>
+        <i class="fas fa-building welcome-icon"></i>
+        
+        </div>
+
+    <div class="row g-4 mb-5">
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-icon-wrapper bg-light-purple">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-title">Total Warga Binaan</div>
+                    <div class="stat-value">{{ stats.wbp }}</div>
+                </div>
+                <a href="{{ url_for('admin_wbp') }}" class="stat-link text-purple">
+                    Update Data <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-icon-wrapper bg-light-blue">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <div class="stat-title">Berita Terpublikasi</div>
+                    <div class="stat-value">{{ stats.news }}</div>
+                </div>
+                <a href="{{ url_for('admin_list', category='berita') }}" class="stat-link text-blue">
+                    Kelola Berita <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-icon-wrapper bg-light-green">
+                        <i class="fas fa-envelope-open-text"></i>
+                    </div>
+                    <div class="stat-title">Pesan Masuk</div>
+                    <div class="stat-value">{{ stats.messages }}</div>
+                </div>
+                <a href="{{ url_for('admin_list', category='pesan') }}" class="stat-link text-green">
+                    Lihat Inbox <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-icon-wrapper bg-light-orange">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div class="stat-title">Galeri Foto</div>
+                    <div class="stat-value">{{ stats.gallery }}</div>
+                </div>
+                <a href="{{ url_for('admin_list', category='galeri') }}" class="stat-link text-orange">
+                    Kelola Galeri <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <h5 class="fw-bold text-dark mb-4 ps-1 border-start border-4 border-primary ps-3">Akses Cepat</h5>
+    <div class="row g-4">
+        
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_kunjungan') }}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <i class="fas fa-user-check quick-icon"></i>
+                    <div class="quick-title">Cek Kunjungan</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_surat_jaminan') }}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <i class="fas fa-file-contract quick-icon"></i>
+                    <div class="quick-title">Verifikasi Surat</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_litmas') }}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <i class="fas fa-clipboard-list quick-icon"></i>
+                    <div class="quick-title">Upload Litmas</div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-6 col-lg-3">
+            <a href="{{ url_for('admin_users') }}" class="text-decoration-none">
+                <div class="quick-action-card">
+                    <i class="fas fa-user-cog quick-icon"></i>
+                    <div class="quick-title">Pengaturan Admin</div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // Set Tanggal Hari Ini
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('currentDate').innerText = new Date().toLocaleDateString('id-ID', options);
+</script>
+
+{% endblock %}
